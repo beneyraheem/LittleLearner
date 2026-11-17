@@ -39,17 +39,12 @@ npm run build
 
 ## Letter sounds
 
-Sounds use the device's text-to-speech voices. English and Arabic voices are available on most phones and
-browsers. Dhivehi voices are rare, so the app speaks the letter's name (e.g. "Kaafu") with an English voice.
+- **Dhivehi:** recorded letter names in `src/assets/audio/dv/<letter id>.m4a` (e.g. `kaafu.m4a`), picked up
+  automatically by file name.
+- **English and Arabic:** the device's text-to-speech voices.
 
-For real pronunciations, record clips and add them to `public/audio/…`, then set `audio` on the letter in
-`src/data/alphabets.js`:
-
-```js
-['ހ', 'Haa', 'h']  →  { id: 'haa', char: 'ހ', name: 'Haa', sound: 'h', audio: 'audio/dv/haa.mp3' }
-```
-
-A recorded clip always takes priority over text-to-speech.
+To add recordings for another language, set `audio` (a URL) on its letters in `src/data/alphabets.js`.
+A recording always takes priority over text-to-speech, and text-to-speech is used if a clip fails to play.
 
 ## Project layout
 

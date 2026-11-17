@@ -27,6 +27,13 @@ const english = [
   emoji,
 }));
 
+// Recorded Dhivehi letter names: src/assets/audio/dv/<letter id>.m4a
+const dhivehiAudio = Object.fromEntries(
+  Object.entries(import.meta.glob('../assets/audio/dv/*.m4a', { eager: true, query: '?url', import: 'default' })).map(
+    ([path, url]) => [path.split('/').pop().replace('.m4a', ''), url],
+  ),
+);
+
 // Thaana – the 24 base letters in traditional order.
 const dhivehi = [
   ['ހ', 'Haa', 'h'], ['ށ', 'Shaviyani', 'sh'], ['ނ', 'Noonu', 'n'], ['ރ', 'Raa', 'r'],
@@ -35,7 +42,10 @@ const dhivehi = [
   ['ތ', 'Thaa', 'th'], ['ލ', 'Laamu', 'l'], ['ގ', 'Gaafu', 'g'], ['ޏ', 'Gnaviyani', 'gn'],
   ['ސ', 'Seenu', 's'], ['ޑ', 'Daviyani', 'd'], ['ޒ', 'Zaviyani', 'z'], ['ޓ', 'Taviyani', 't'],
   ['ޔ', 'Yaa', 'y'], ['ޕ', 'Paviyani', 'p'], ['ޖ', 'Javiyani', 'j'], ['ޗ', 'Chaviyani', 'ch'],
-].map(([char, name, sound]) => ({ id: name.toLowerCase(), char, name, sound }));
+].map(([char, name, sound]) => {
+  const id = name.toLowerCase();
+  return { id, char, name, sound, audio: dhivehiAudio[id] };
+});
 
 const arabic = [
   ['ا', 'Alif', 'ألف', 'a', 'أرنب', 'Arnab', 'rabbit', '🐰'],

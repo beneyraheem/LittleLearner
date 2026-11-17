@@ -48,11 +48,14 @@ npm run build
 
 ## Letter sounds
 
-- **Dhivehi:** recorded letter names in `src/assets/audio/dv/<letter id>.m4a` (e.g. `kaafu.m4a`), picked up
-  automatically by file name.
-- **English and Arabic:** the device's text-to-speech voices.
+Recorded clips are picked up automatically from `src/assets/audio/<language>/<letter id>.<m4a|mp3|wav|aac|ogg>`;
+any letter without a clip uses the device's text-to-speech (a female voice where available).
 
-To add recordings for another language, set `audio` (a URL) on its letters in `src/data/alphabets.js`.
+- **Dhivehi:** all 24 letters recorded (`src/assets/audio/dv/kaafu.m4a`, …).
+- **English / Arabic:** see `src/assets/audio/en/README.md` and `src/assets/audio/ar/README.md` for the file
+  names. On a Mac, `bash scripts/make_letter_audio_mac.sh` generates all of them with a built-in female voice
+  (Samantha for English, an Arabic female voice if installed).
+
 A recording always takes priority over text-to-speech, and text-to-speech is used if a clip fails to play.
 
 ## Project layout

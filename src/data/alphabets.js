@@ -6,8 +6,20 @@
 //   name    – romanised name shown under the letter
 //   sound   – short pronunciation hint
 //   word / wordLatin / meaning / emoji – optional example word
-//   audio   – optional path to a recorded clip (e.g. "audio/dv/haa.mp3" in /public).
+//   audio   – recorded clip, picked up automatically from
+//             src/assets/audio/<language id>/<letter id>.<m4a|mp3|wav|aac|ogg>
+//             (e.g. audio/en/a.m4a, audio/dv/kaafu.m4a, audio/ar/2-baa.m4a).
 //             When present it is played instead of text-to-speech.
+
+// All recorded clips, keyed "<language id>/<letter id>".
+const AUDIO = Object.fromEntries(
+  Object.entries(
+    import.meta.glob('../assets/audio/*/*.{m4a,mp3,wav,aac,ogg}', { eager: true, query: '?url', import: 'default' }),
+  ).map(([path, url]) => {
+    const [lang, file] = path.split('/').slice(-2);
+    return [`${lang}/${file.replace(/\.[^.]+$/, '')}`, url];
+  }),
+);
 
 const english = [
   ['A', 'Apple', '🍎'], ['B', 'Ball', '⚽'], ['C', 'Cat', '🐱'], ['D', 'Dog', '🐶'],
@@ -27,13 +39,6 @@ const english = [
   emoji,
 }));
 
-// Recorded Dhivehi letter names: src/assets/audio/dv/<letter id>.m4a
-const dhivehiAudio = Object.fromEntries(
-  Object.entries(import.meta.glob('../assets/audio/dv/*.m4a', { eager: true, query: '?url', import: 'default' })).map(
-    ([path, url]) => [path.split('/').pop().replace('.m4a', ''), url],
-  ),
-);
-
 // Thaana – the 24 base letters in traditional order.
 const dhivehi = [
   ['ހ', 'Haa', 'h'], ['ށ', 'Shaviyani', 'sh'], ['ނ', 'Noonu', 'n'], ['ރ', 'Raa', 'r'],
@@ -44,7 +49,7 @@ const dhivehi = [
   ['ޔ', 'Yaa', 'y'], ['ޕ', 'Paviyani', 'p'], ['ޖ', 'Javiyani', 'j'], ['ޗ', 'Chaviyani', 'ch'],
 ].map(([char, name, sound]) => {
   const id = name.toLowerCase();
-  return { id, char, name, sound, audio: dhivehiAudio[id] };
+  return { id, char, name, sound };
 });
 
 const arabic = [
@@ -142,6 +147,11 @@ export const ALPHABETS = [
     }),
   },
 ];
+
+// Attach recorded clips to their letters.
+for (const a of ALPHABETS) {
+  a.letters = a.letters.map((l) => ({ ...l, audio: l.audio ?? AUDIO[`${a.id}/${l.id}`] }));
+}
 
 export const getAlphabet = (id) => ALPHABETS.find((a) => a.id === id);
 

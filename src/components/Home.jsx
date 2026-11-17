@@ -1,21 +1,25 @@
 import { ALPHABETS, glyphStyle } from '../data/alphabets';
-import { percentFor } from '../lib/progress';
+import { percentFor, overallPercent, starsOf } from '../lib/progress';
 import ProgressRing from './ProgressRing';
+import Avatar from './Avatar';
 
-export default function Home({ progress, onOpen, onQuiz, onReset }) {
+export default function Home({ profile, progress, onOpen, onQuiz, onSwitch, onParent }) {
   const percents = ALPHABETS.map((a) => percentFor(progress, a));
-  const overall = Math.round(percents.reduce((a, b) => a + b, 0) / percents.length);
-  const stars = ALPHABETS.reduce((n, a) => n + progress[a.id].done.length, 0);
+  const overall = overallPercent(progress);
+  const stars = starsOf(progress);
 
   return (
     <div className="screen home">
       <header className="home-head">
-        <div>
-          <h1 className="logo">
-            Little <span>Learner</span>
-          </h1>
-          <p className="tagline">Trace, listen &amp; play with letters!</p>
-        </div>
+        <button className="child-chip" onClick={onSwitch} aria-label={`${profile.name} – switch child`}>
+          <Avatar profile={profile} size={64} />
+          <span>
+            <span className="logo-small">
+              Little <b>Learner</b>
+            </span>
+            <span className="hello">Hi, {profile.name}! 👋</span>
+          </span>
+        </button>
         <div className="home-stats">
           <ProgressRing percent={overall} color="#ffb03a" size={72} stroke={9} />
           <div className="stars-pill">⭐ {stars}</div>
@@ -56,7 +60,7 @@ export default function Home({ progress, onOpen, onQuiz, onReset }) {
                   ✏️ {pct === 0 ? 'Start' : pct === 100 ? 'Practice' : 'Continue'}
                 </button>
                 <button className="btn btn-soft" onClick={() => onQuiz(a.id)}>
-                  🎯 Quiz {p.quizBest > 0 && <small>best {p.quizBest}%</small>}
+                  🎯 Quiz {p.quizBest > 0 && <small>⭐ {p.quizBest}%</small>}
                 </button>
               </div>
             </article>
@@ -65,13 +69,8 @@ export default function Home({ progress, onOpen, onQuiz, onReset }) {
       </div>
 
       <footer className="home-foot">
-        <button
-          className="link-btn"
-          onClick={() => {
-            if (window.confirm('Reset all progress? This cannot be undone.')) onReset();
-          }}
-        >
-          Reset progress
+        <button className="parent-btn" onClick={onParent}>
+          🔒 Parents
         </button>
       </footer>
     </div>

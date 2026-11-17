@@ -13,6 +13,15 @@ Built with React + Vite. No login: progress is saved in the browser (localStorag
 
 Progress is shown as percentages on the home screen (per language and overall) and on each language's letter map.
 
+### Children & parents
+
+- **First visit:** a short welcome form makes a profile for the child (name, boy/girl, age).
+- **Several children:** each child has their own progress. With more than one child the app opens on
+  *Who's playing?*, and tapping the child's picture on the home screen switches child.
+- **Parent menu:** the 🔒 *Parents* button asks a simple sum (e.g. 7 + 5) so little ones can't wander in.
+  Parents can see each child's progress and quiz scores, add, edit or delete children, and reset progress.
+- Everything is stored on the device (localStorage) – no accounts or servers.
+
 ## Run it
 
 ```bash

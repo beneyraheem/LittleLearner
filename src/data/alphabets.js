@@ -21,7 +21,14 @@ const AUDIO = Object.fromEntries(
   }),
 );
 
-const ENGLISH_START = { B: [0.25, 0.15], N: [0.2, 0.85], P: [0.25, 0.15], R: [0.25, 0.15] };
+const ENGLISH_START = { N: [0.2, 0.85], P: [0.25, 0.15], R: [0.25, 0.15] };
+
+// Hand-drawn tracing paths (fractions of the letter's ink box, 0,0 = top left).
+// B: start at the top on the right and go left, down the stem, along the
+// bottom, round the lower bump to the middle, then round the upper bump.
+const ENGLISH_GUIDES = {
+  B: [[[0.62, 0.08], [0.4, 0.08], [0.18, 0.08], [0.12, 0.14], [0.12, 0.4], [0.12, 0.7], [0.12, 0.86], [0.18, 0.92], [0.4, 0.92], [0.62, 0.92], [0.8, 0.86], [0.89, 0.7], [0.82, 0.55], [0.62, 0.46], [0.78, 0.38], [0.85, 0.26], [0.78, 0.13], [0.62, 0.08]]],
+};
 
 const english = [
   ['A', 'Apple', '🍎'], ['B', 'Ball', '⚽'], ['C', 'Cat', '🐱'], ['D', 'Dog', '🐶'],
@@ -35,6 +42,7 @@ const english = [
   // where the first stroke starts, for letters the automatic guide can't guess
   // (canvas fractions: [x, y], 0,0 = top left)
   startNear: ENGLISH_START[char],
+  guide: ENGLISH_GUIDES[char],
   id: char.toLowerCase(),
   char,
   lower: char.toLowerCase(),

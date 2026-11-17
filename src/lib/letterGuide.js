@@ -80,6 +80,8 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null } = {
   const ds = skel.map((i) => dist[i]).sort((a, b) => a - b);
   const median = ds[Math.floor(ds.length / 2)];
   const halfWidth = (median * cell) / 3 / dpr; // CSS px
+  // thicker parts of the letter (bends, bumps) – the crayon should reach these too
+  const wideHalf = (ds[Math.floor(ds.length * 0.9)] * cell) / 3 / dpr;
   const halfCells = median / 3;
 
   // ---- Separate parts of the letter; small ones (Arabic dots) are taps ---
@@ -356,7 +358,7 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null } = {
   strokes = strokes.map((s) => ({ ...s, dots: resample(s.points, spacing) }));
   for (const t of taps) strokes.push({ points: [t], tap: true, closed: false, length: 0, dots: [t] });
 
-  return { halfWidth, strokes };
+  return { halfWidth, wideHalf, strokes };
 }
 
 // Points every `step` px along a polyline, each with its direction (angle).

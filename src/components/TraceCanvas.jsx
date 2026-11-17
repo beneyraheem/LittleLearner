@@ -286,9 +286,19 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
 
         // Centre-line guide dots and a crayon about as wide as the letter's stroke.
         const guide = letterGuide(data, W, dpr, { rtl, startNear: startNear && { x: startNear[0] * S, y: startNear[1] * S } });
-        if (window.__debugGuide) window.__guide = guide;
+        if (window.__debugGuide && guide) {
+          // debug: how much of the letter is far from every guide stroke
+          const pts = guide.strokes.flatMap((g) => g.points);
+          let miss = 0, mx = 0, my = 0;
+          for (const i of samples) {
+            const p = (i - 3) / 4, x = (p % W) / dpr, y = Math.floor(p / W) / dpr;
+            if (pts.every((q) => Math.hypot(q.x - x, q.y - y) > guide.halfWidth * 1.7)) { miss++; mx += x; my += y; }
+          }
+          window.__guide = guide;
+          window.__miss = { ratio: miss / samples.length, at: miss ? [Math.round(mx / miss), Math.round(my / miss)] : null };
+        }
         const brush = guide
-          ? Math.min(S * 0.14, Math.max(14, guide.halfWidth * 2 * 1.2))
+          ? Math.min(S * 0.17, Math.max(14, guide.halfWidth * 2 * 1.3, guide.wideHalf * 2 * 1.15))
           : Math.max(12, S * 0.065);
 
         const paint = makeCanvas(W, W);

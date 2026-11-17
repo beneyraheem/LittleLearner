@@ -101,8 +101,10 @@ export const ALPHABETS = [
     nativeTitle: 'ދިވެހި',
     speechLang: 'dv',
     dir: 'rtl',
-    font: '"Noto Sans Thaana", sans-serif',
-    displayScale: 1.6, // Thaana glyphs are small within the font's em box
+    // MV Waheed (src/assets/fonts) with Noto Sans Thaana as fallback.
+    font: '"MV Waheed", "Noto Sans Thaana", sans-serif',
+    displayScale: 1.8, // MV Waheed glyphs are small within the font's em box
+    glyphShift: '-0.22em', // …and sit low, so lift them to look centred
     theme: { main: '#14b8a6', soft: '#d3f5ef', deep: '#0d8a7c' },
     letters: dhivehi,
     phrase: (l) => ({ native: l.char, fallback: `${l.name}.` }),

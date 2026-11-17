@@ -1,3 +1,15 @@
+/* Dhivehi (Thaana) letters use MV Waheed – the classic textbook calligraphic
+   style. It has a single weight, so it is declared for every weight to avoid
+   faux-bold. Noto Sans Thaana is the fallback. */
+@font-face {
+  font-family: 'MV Waheed';
+  src: url('./assets/fonts/MV_Waheed.otf') format('opentype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+  unicode-range: U+0780-07BF;
+}
+
 :root {
   --bg: #fff8ef;
   --card: #ffffff;
@@ -90,7 +102,7 @@ h1, h2, p { margin: 0; }
 }
 .lang-letters span {
   background: var(--soft); width: 64px; height: 64px; border-radius: 18px;
-  display: grid; place-items: center;
+  display: grid; place-items: center; line-height: 1; overflow: hidden;
 }
 .lang-letters span:nth-child(2) { transform: rotate(-6deg); }
 .lang-letters span:nth-child(3) { transform: rotate(5deg); }
@@ -102,6 +114,7 @@ h1, h2, p { margin: 0; }
 .home-foot { text-align: center; margin-top: auto; }
 
 /* ---------- Progress ring / bar ---------- */
+.glyph { position: relative; top: var(--gy, 0); font-style: normal; }
 .ring { position: relative; flex: none; }
 .ring svg { display: block; }
 .ring-label { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; font-size: .95rem; }

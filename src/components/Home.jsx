@@ -30,12 +30,14 @@ export default function Home({ progress, onOpen, onQuiz, onReset }) {
             <article
               key={a.id}
               className="lang-card"
-              style={{ '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale }}
+              style={{ '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift }}
             >
               <button className="lang-card-body" onClick={() => onOpen(a.id)}>
                 <div className="lang-letters" dir={a.dir} style={{ fontFamily: a.font }}>
                   {a.letters.slice(0, 3).map((l) => (
-                    <span key={l.id}>{l.char}</span>
+                    <span key={l.id}>
+                      <i className="glyph">{l.char}</i>
+                    </span>
                   ))}
                 </div>
                 <div className="lang-info">

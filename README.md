@@ -26,6 +26,13 @@ Build for production (static files in `dist/`, can be hosted anywhere):
 npm run build
 ```
 
+## Fonts
+
+- English: Fredoka · Arabic: Noto Sans Arabic (both from npm / Fontsource)
+- Dhivehi: **MV Waheed** (`src/assets/fonts/MV_Waheed.otf`), the classic textbook Thaana style, with
+  Noto Sans Thaana as fallback. Its size and vertical position are tuned with `displayScale` and
+  `glyphShift` on the Dhivehi entry in `src/data/alphabets.js`.
+
 ## Letter sounds
 
 Sounds use the device's text-to-speech voices. English and Arabic voices are available on most phones and

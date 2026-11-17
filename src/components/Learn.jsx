@@ -37,7 +37,7 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
     setStage('intro');
   };
 
-  const style = { '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale };
+  const style = { '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift };
 
   return (
     <div className="screen learn" style={style}>
@@ -59,7 +59,7 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
       {stage === 'intro' && (
         <div className="card intro-card pop-in" key={`intro-${letter.id}`}>
           <button className="intro-letter" style={{ fontFamily: a.font }} onClick={() => playLetter(a, letter)}>
-            {letter.char}
+            <span className="glyph">{letter.char}</span>
             {letter.lower && <span className="intro-lower">{letter.lower}</span>}
           </button>
           <h2 className="intro-name">{letter.name}</h2>
@@ -117,7 +117,7 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
             <p>
               You traced{' '}
               <b style={{ fontFamily: a.font }} className="done-char">
-                {letter.char}
+                <span className="glyph">{letter.char}</span>
               </b>{' '}
               ({letter.name})
             </p>

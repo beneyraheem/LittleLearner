@@ -80,7 +80,7 @@ export default function Quiz({ langId, progress, onFinish, onExit }) {
     setFinished(false);
   };
 
-  const style = { '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale };
+  const style = { '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift };
   const pct = Math.round((score / rounds.length) * 100);
   const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
 
@@ -120,7 +120,7 @@ export default function Quiz({ langId, progress, onFinish, onExit }) {
                   disabled={isWrong}
                   aria-label={`Option ${opt.name}`}
                 >
-                  {opt.char}
+                  <span className="glyph">{opt.char}</span>
                 </button>
               );
             })}

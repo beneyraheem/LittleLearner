@@ -104,6 +104,7 @@ export const ALPHABETS = [
     speechLang: 'en',
     dir: 'ltr',
     font: '"Fredoka", system-ui, sans-serif',
+    traceOutline: 2.2, // thicker border around the letter when tracing
     theme: { main: '#ff7a59', soft: '#ffe3d9', deep: '#d9512f' },
     letters: english,
     // What to say for a letter: [text, language] in the native voice,

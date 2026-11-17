@@ -59,7 +59,7 @@ function drawShape(ctx, char, glyph, thicken, color) {
   }
 }
 
-export default function TraceCanvas({ char, font, theme, onComplete, reference = [char], thicken = 0 }) {
+export default function TraceCanvas({ char, font, theme, onComplete, reference = [char], thicken = 0, outlineScale = 1 }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const st = useRef({}); // mutable drawing state, not needed for React renders
@@ -108,7 +108,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     ctx.clearRect(0, 0, S, S);
     // The letter is a solid "track" with a bold border and a dotted
     // centre line to follow; the child's crayon goes on top.
-    const outline = Math.max(3, S * 0.014);
+    const outline = Math.max(3, S * 0.014 * outlineScale);
     drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
     drawShape(ctx, char, glyph, glyph.thick, theme.soft);
     if (s.guide) {
@@ -123,7 +123,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
       ctx.globalAlpha = 1;
     }
     ctx.drawImage(s.layer, 0, 0, S, S);
-  }, [char, theme]);
+  }, [char, theme, outlineScale]);
 
   // (Re)build the letter mask whenever the letter or size changes.
   useEffect(() => {

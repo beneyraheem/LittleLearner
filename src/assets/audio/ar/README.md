@@ -13,5 +13,7 @@ Drop one clip per letter here, named after the letter id. Supported: `.m4a`, `.m
 | `7-khaa` | خ | `14-saad` | ص | `21-qaaf` | ق | `28-yaa` | ي |
 
 e.g. `2-baa.m4a` → say *"باء … بطة"* (letter name, then the example word on the card).
-Any letter without a clip uses the device's voice. Generate them all on a Mac with
+The current `.mp3` clips are machine voice (`scripts/make_letter_audio_google.py`); replace any of them with a
+real recording of the same name (delete the old `.mp3` if your file has another extension). Any letter without a
+clip uses the device's voice. Generate them all on a Mac with
 `scripts/make_letter_audio_mac.sh`.

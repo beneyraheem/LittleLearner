@@ -52,9 +52,11 @@ Recorded clips are picked up automatically from `src/assets/audio/<language>/<le
 any letter without a clip uses the device's text-to-speech (a female voice where available).
 
 - **Dhivehi:** all 24 letters recorded (`src/assets/audio/dv/kaafu.m4a`, …).
-- **English / Arabic:** see `src/assets/audio/en/README.md` and `src/assets/audio/ar/README.md` for the file
-  names. On a Mac, `bash scripts/make_letter_audio_mac.sh` generates all of them with a built-in female voice
-  (Samantha for English, an Arabic female voice if installed).
+- **English / Arabic:** all letters have machine-voice clips (Google Translate's text-to-speech voice), made with
+  `python3 scripts/make_letter_audio_google.py`. Each says the letter, then the example word. To use real
+  recordings instead, overwrite the files – names are listed in `src/assets/audio/en/README.md` and
+  `src/assets/audio/ar/README.md`. On a Mac, `bash scripts/make_letter_audio_mac.sh` makes them with the
+  built-in voices instead.
 
 A recording always takes priority over text-to-speech, and text-to-speech is used if a clip fails to play.
 

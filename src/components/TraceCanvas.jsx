@@ -44,6 +44,13 @@ function referenceBox(font, chars, weight = 700) {
   return refBoxCache.get(key);
 }
 
+// Distance from point p to the segment a–b.
+function distToSegment(p, a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy;
+  const t = l2 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2)) : 0;
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
 // Draw the letter, optionally thickened by stroking its outline – used for
 // fonts with thin strokes so there is room for little fingers to colour.
 function drawShape(ctx, char, glyph, thicken, color) {
@@ -62,12 +69,28 @@ function drawShape(ctx, char, glyph, thicken, color) {
 }
 
 // Guide: dots along each stroke, with an arrow every few dots for direction.
-function drawGuide(ctx, guide, S, theme) {
+// Dots already reached are hidden; the next one to reach is highlighted.
+function drawGuide(ctx, guide, S, theme, startIdx = null, next = 0) {
   const r = Math.max(3, Math.min(S * 0.013, guide.halfWidth * 0.38));
   ctx.fillStyle = theme.main;
-  for (const st of guide.strokes) {
-    if (st.tap) continue;
+  guide.strokes.forEach((st, si) => {
+    if (st.tap) return;
     st.dots.forEach((d, j) => {
+      const k = startIdx ? startIdx[si] + j : -1;
+      if (startIdx && k < next) return; // already reached
+      if (k === next && j > 0) {
+        // the next dot to reach: a bigger white dot with a coloured ring
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, r * 1.9, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.lineWidth = Math.max(2, r * 0.8);
+        ctx.strokeStyle = theme.deep;
+        ctx.stroke();
+        ctx.fillStyle = theme.main;
+        return;
+      }
       if (j === 0) return; // start marker drawn separately
       const arrow = j % 3 === 2 && j < st.dots.length - 1;
       ctx.globalAlpha = arrow ? 0.95 : 0.7;
@@ -88,12 +111,12 @@ function drawGuide(ctx, guide, S, theme) {
       }
       ctx.fill();
     });
-  }
+  });
   ctx.globalAlpha = 1;
 }
 
 // Numbered green circle where each stroke starts (Arabic dots: a ring to tap).
-function drawStarts(ctx, guide, S) {
+function drawStarts(ctx, guide, S, startIdx = null, next = 0) {
   const R = Math.max(10, S * 0.034);
   ctx.save();
   ctx.textAlign = 'center';
@@ -104,6 +127,7 @@ function drawStarts(ctx, guide, S) {
     // if another stroke starts at the same spot (A), nudge this marker along its stroke
     const p = st.dots.slice(0, Math.ceil(st.dots.length / 2)).find((d) => placed.every((q) => Math.hypot(d.x - q.x, d.y - q.y) > R * 2.3)) || st.dots[0];
     placed.push(p);
+    if (startIdx && startIdx[i] < next) return; // stroke already started
     ctx.beginPath();
     ctx.arc(p.x, p.y, R, 0, Math.PI * 2);
     ctx.fillStyle = st.tap ? 'rgba(255,255,255,.92)' : '#22b45a';
@@ -217,11 +241,11 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     const outline = Math.max(3, S * 0.014 * outlineScale);
     drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
     drawShape(ctx, char, glyph, glyph.thick, theme.soft);
-    if (s.guide) drawGuide(ctx, s.guide, S, theme);
+    if (s.guide) drawGuide(ctx, s.guide, S, theme, s.startIdx, s.next);
     if (s.demo) drawDemo(ctx, s, theme);
     ctx.drawImage(s.layer, 0, 0, S, S);
     // Start markers stay visible on top of the crayon until the letter is done.
-    if (s.guide && !s.finished) drawStarts(ctx, s.guide, S);
+    if (s.guide && !s.finished) drawStarts(ctx, s.guide, S, s.startIdx, s.next);
   }, [char, theme, outlineScale]);
 
   // (Re)build the letter mask whenever the letter or size changes.
@@ -231,6 +255,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     setReady(false);
     setDone(false);
     setCoverage(0);
+    setProgress(0);
 
     const family = font.split(',')[0];
     document.fonts
@@ -326,8 +351,20 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
         pc.lineCap = 'round';
         pc.lineJoin = 'round';
 
+        // Every guide dot in writing order: the child completes the letter by
+        // reaching them one after another (starting each stroke at its start).
+        const seq = [], startIdx = [];
+        guide?.strokes.forEach((g, si) => {
+          startIdx[si] = seq.length;
+          g.dots.forEach((d) => seq.push({ x: d.x, y: d.y, si }));
+        });
+
         st.current = {
-          S, dpr, W, glyph, mask, paint, samples, guide, brush,
+          S, dpr, W, glyph, mask, paint, samples, guide, brush, seq, startIdx,
+          next: 0,
+          reach: Math.max(brush * 0.5, 14), // how close the finger must pass to a dot
+          maskData: data, // letter shape, to notice when the finger leaves the letter
+          lost: false,
           layer: makeCanvas(W, W),
           hue: Math.floor(Math.random() * 360),
           last: null,
@@ -388,6 +425,35 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     [measureCoverage, finish],
   );
 
+  // Move along the dot sequence while the finger's path passes the next dot.
+  // Only the next dot counts, so going the wrong way or jumping ahead doesn't.
+  const [progress, setProgress] = useState(0);
+  const advance = (a, b) => {
+    const s = st.current;
+    if (!s.seq?.length || s.finished) return;
+    // Leaving the letter during a drag stops that drag from counting (no
+    // sweeping over everything); lift and carry on from the last dot.
+    const off = (q) =>
+      [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => {
+        const x = Math.round((q.x + dx * s.brush * 0.3) * s.dpr), y = Math.round((q.y + dy * s.brush * 0.3) * s.dpr);
+        return x < 0 || y < 0 || x >= s.W || y >= s.W || s.maskData[(y * s.W + x) * 4 + 3] < 100;
+      });
+    if (off(b)) s.lost = true;
+    if (s.lost) return;
+    const before = s.next;
+    const near = (d) => distToSegment(d, a, b) <= s.reach;
+    while (s.next < s.seq.length) {
+      if (near(s.seq[s.next])) s.next++;
+      // a dot a fast finger just missed: allow skipping one within the same stroke
+      else if (s.next + 1 < s.seq.length && s.seq[s.next + 1].si === s.seq[s.next].si && s.next > s.startIdx[s.seq[s.next].si] && near(s.seq[s.next + 1])) s.next += 2;
+      else break;
+    }
+    if (s.next !== before) {
+      setProgress(s.next / s.seq.length);
+      if (s.next >= s.seq.length) finish();
+    }
+  };
+
   const colorFor = () => {
     const s = st.current;
     if (crayonRef.current === 'rainbow') {
@@ -443,11 +509,13 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     canvasRef.current.setPointerCapture?.(e.pointerId);
     const p = point(e);
     s.last = p;
+    s.lost = false;
     const pc = s.paint.getContext('2d');
     pc.fillStyle = colorFor();
     pc.beginPath();
     pc.arc(p.x, p.y, s.brush / 2, 0, Math.PI * 2);
     pc.fill();
+    advance(p, p);
     render();
   };
 
@@ -465,10 +533,11 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
       pc.moveTo(s.last.x, s.last.y);
       pc.lineTo(p.x, p.y);
       pc.stroke();
+      advance(s.last, p);
       s.last = p;
     }
     render();
-    check(false);
+    if (!s.seq?.length) check(false); // no guide: fall back to how much is coloured
   };
 
   const onUp = () => {
@@ -477,7 +546,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     s.last = null;
     if (!s.finished) {
       sfx.pop();
-      check(true);
+      if (!s.seq?.length) check(true);
     }
   };
 
@@ -485,15 +554,18 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     const s = st.current;
     if (!s.paint || s.finished) return;
     s.paint.getContext('2d').clearRect(0, 0, s.S, s.S);
+    s.next = 0;
     render();
     setCoverage(0);
+    setProgress(0);
   };
 
-  const pct = Math.min(100, Math.round((coverage / COMPLETE_AT) * 100));
+  const usesDots = !!st.current.seq?.length;
+  const pct = usesDots ? Math.round(progress * 100) : Math.min(100, Math.round((coverage / COMPLETE_AT) * 100));
 
   return (
     <div className="trace">
-      <div className="trace-meter" aria-label={`Coloured ${pct}%`}>
+      <div className="trace-meter" aria-label={usesDots ? `${pct}% of the dots reached` : `Coloured ${pct}%`}>
         <div className="trace-meter-fill" style={{ width: `${pct}%`, background: theme.main }} />
         <span>{done ? 'Done! ⭐' : `${pct}%`}</span>
       </div>
@@ -510,7 +582,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           onPointerLeave={onUp}
         />
         {!ready && <div className="trace-loading">✏️</div>}
-        {ready && coverage === 0 && !done && !demoOn && (
+        {ready && (usesDots ? progress === 0 : coverage === 0) && !done && !demoOn && (
           <div className="trace-hint">👆 Start at the green 1 and follow the arrows!</div>
         )}
       </div>

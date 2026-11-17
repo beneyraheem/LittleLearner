@@ -11,7 +11,11 @@ Built with React + Vite. No login: progress is saved in the browser (localStorag
    replays it). The guide is worked out automatically from the letter's shape (`src/lib/letterGuide.js`):
    strokes start at the top, English goes left→right, Arabic/Thaana right→left, Arabic dots come last.
    A letter can give a start hint (`startNear` in `src/data/alphabets.js`, e.g. N starts bottom-left).
-   At 80 % coloured the letter fills in, is marked complete ⭐ and the child moves on.
+   The letter is complete when the child has reached **every guide dot in order** – each stroke from its
+   green start, along the arrows. Reached dots disappear and the next one is highlighted; going the wrong
+   way, jumping ahead or sweeping over the whole letter doesn't count (leaving the letter mid-drag pauses
+   counting until the finger is lifted). Then the letter fills in, is marked complete ⭐ and the child
+   moves on.
 3. **Quiz** – listen to a letter and tap the right one out of four cards. 10 rounds, stars, best score saved.
 
 Progress is shown as percentages on the home screen (per language and overall) and on each language's letter map.

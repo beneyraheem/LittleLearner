@@ -4,6 +4,7 @@ import '@fontsource/fredoka/400.css';
 import '@fontsource/fredoka/600.css';
 import '@fontsource/fredoka/700.css';
 import '@fontsource/noto-sans-thaana/700.css';
+import '@fontsource/noto-sans-arabic/500.css';
 import '@fontsource/noto-sans-arabic/700.css';
 import './styles.css';
 import App from './App';

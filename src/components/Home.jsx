@@ -1,4 +1,4 @@
-import { ALPHABETS } from '../data/alphabets';
+import { ALPHABETS, glyphStyle } from '../data/alphabets';
 import { percentFor } from '../lib/progress';
 import ProgressRing from './ProgressRing';
 
@@ -30,10 +30,10 @@ export default function Home({ progress, onOpen, onQuiz, onReset }) {
             <article
               key={a.id}
               className="lang-card"
-              style={{ '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift }}
+              style={{ '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift, '--stroke': a.textStroke }}
             >
               <button className="lang-card-body" onClick={() => onOpen(a.id)}>
-                <div className="lang-letters" dir={a.dir} style={{ fontFamily: a.font }}>
+                <div className="lang-letters" dir={a.dir} style={glyphStyle(a)}>
                   {a.letters.slice(0, 3).map((l) => (
                     <span key={l.id}>
                       <i className="glyph">{l.char}</i>

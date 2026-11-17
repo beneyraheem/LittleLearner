@@ -28,7 +28,11 @@ npm run build
 
 ## Fonts
 
-- English: Fredoka · Arabic: Noto Sans Arabic (both from npm / Fontsource)
+- English: Fredoka (npm / Fontsource)
+- Arabic: **KFGQPC Hafs Uthmanic Script** (`src/assets/fonts/`, King Fahd Glorious Qur'an Printing Complex;
+  free to use and distribute unmodified). Its strokes are thin, so on screen it is slightly emboldened
+  (`textStroke`) and the tracing shape is thickened (`traceThicken`). The font draws an isolated ي without
+  dots, so that one letter uses Noto Sans Arabic.
 - Dhivehi: **MV Waheed** (`src/assets/fonts/MV_Waheed.otf`), the classic textbook Thaana style, with
   Noto Sans Thaana as fallback. Its size and vertical position are tuned with `displayScale` and
   `glyphShift` on the Dhivehi entry in `src/data/alphabets.js`.

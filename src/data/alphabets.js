@@ -76,6 +76,9 @@ const arabic = [
   wordLatin,
   meaning,
   emoji,
+  // The Uthmanic font draws an isolated ي without its two dots (Qur'anic
+  // style). Children need the dots, so this one letter uses Noto Sans Arabic.
+  ...(char === 'ي' ? { font: '"Noto Sans Arabic", sans-serif' } : {}),
 }));
 
 export const ALPHABETS = [
@@ -115,7 +118,12 @@ export const ALPHABETS = [
     nativeTitle: 'العربية',
     speechLang: 'ar',
     dir: 'rtl',
-    font: '"Noto Sans Arabic", sans-serif',
+    // KFGQPC Hafs Uthmanic Script (src/assets/fonts), Noto Sans Arabic fallback.
+    font: '"KFGQPC Hafs", "Noto Sans Arabic", sans-serif',
+    displayScale: 1.2,
+    glyphShift: '-0.2em', // the font sits letters low – lift them to look centred
+    textStroke: '0.022em', // the font is thin – embolden it a little on screen
+    traceThicken: 0.045, // …and thicken the tracing shape (fraction of font size)
     theme: { main: '#8b5cf6', soft: '#ebe3ff', deep: '#6a3fd6' },
     letters: arabic,
     phrase: (l, withWord) => ({
@@ -126,3 +134,12 @@ export const ALPHABETS = [
 ];
 
 export const getAlphabet = (id) => ALPHABETS.find((a) => a.id === id);
+
+// Font and on-screen boldness for a letter (a few letters override the alphabet font).
+export const fontOf = (alphabet, letter) => letter?.font || alphabet.font;
+export const glyphStyle = (alphabet, letter) => ({
+  fontFamily: fontOf(alphabet, letter),
+  '--stroke': letter?.font ? '0' : alphabet.textStroke || '0',
+  // Letters drawn in the fallback font: lighter, smaller and lifted to match.
+  ...(letter?.font ? { fontWeight: 500, '--fs': 0.9, '--gy': '-0.12em' } : {}),
+});

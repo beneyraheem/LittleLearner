@@ -1,4 +1,4 @@
-import { getAlphabet } from '../data/alphabets';
+import { getAlphabet, glyphStyle } from '../data/alphabets';
 import { percentFor } from '../lib/progress';
 import TopBar from './TopBar';
 
@@ -9,7 +9,7 @@ export default function LetterMap({ langId, progress, onBack, onLearn, onQuiz })
   const nextIndex = Math.max(0, a.letters.findIndex((l) => !done.has(l.id)));
 
   return (
-    <div className="screen" style={{ '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift }}>
+    <div className="screen" style={{ '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift, '--stroke': a.textStroke }}>
       <TopBar onBack={onBack} title={a.title} theme={a.theme}>
         <span className="pct-chip">{pct}%</span>
       </TopBar>
@@ -43,7 +43,7 @@ export default function LetterMap({ langId, progress, onBack, onLearn, onQuiz })
               onClick={() => onLearn(i)}
               aria-label={`${l.name}${isDone ? ', completed' : ''}`}
             >
-              <span className="tile-char glyph" style={{ fontFamily: a.font }}>
+              <span className="tile-char glyph" style={glyphStyle(a, l)}>
                 {l.char}
               </span>
               <span className="tile-name">{l.name}</span>

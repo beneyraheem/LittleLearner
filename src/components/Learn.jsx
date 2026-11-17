@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getAlphabet } from '../data/alphabets';
+import { getAlphabet, glyphStyle, fontOf } from '../data/alphabets';
 import { playLetter, cheer } from '../lib/speech';
 import { sfx } from '../lib/sfx';
 import TopBar from './TopBar';
@@ -37,7 +37,7 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
     setStage('intro');
   };
 
-  const style = { '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift };
+  const style = { '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift, '--stroke': a.textStroke };
 
   return (
     <div className="screen learn" style={style}>
@@ -58,7 +58,7 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
 
       {stage === 'intro' && (
         <div className="card intro-card pop-in" key={`intro-${letter.id}`}>
-          <button className="intro-letter" style={{ fontFamily: a.font }} onClick={() => playLetter(a, letter)}>
+          <button className="intro-letter" style={glyphStyle(a, letter)} onClick={() => playLetter(a, letter)}>
             <span className="glyph">{letter.char}</span>
             {letter.lower && <span className="intro-lower">{letter.lower}</span>}
           </button>
@@ -100,7 +100,8 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
         <div className="card trace-card" key={`trace-${letter.id}-${attempt}`}>
           <TraceCanvas
             char={letter.char}
-            font={a.font}
+            font={fontOf(a, letter)}
+            thicken={letter.font ? 0 : a.traceThicken || 0}
             theme={a.theme}
             reference={referenceChars}
             onComplete={handleTraced}
@@ -116,7 +117,7 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
             <h2>Amazing!</h2>
             <p>
               You traced{' '}
-              <b style={{ fontFamily: a.font }} className="done-char">
+              <b style={glyphStyle(a, letter)} className="done-char">
                 <span className="glyph">{letter.char}</span>
               </b>{' '}
               ({letter.name})

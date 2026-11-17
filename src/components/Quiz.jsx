@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getAlphabet } from '../data/alphabets';
+import { getAlphabet, glyphStyle } from '../data/alphabets';
 import { playLetter, cheer } from '../lib/speech';
 import { sfx } from '../lib/sfx';
 import TopBar from './TopBar';
@@ -80,7 +80,7 @@ export default function Quiz({ langId, progress, onFinish, onExit }) {
     setFinished(false);
   };
 
-  const style = { '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift };
+  const style = { '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift, '--stroke': a.textStroke };
   const pct = Math.round((score / rounds.length) * 100);
   const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
 
@@ -115,7 +115,7 @@ export default function Quiz({ langId, progress, onFinish, onExit }) {
                 <button
                   key={`${seed}-${i}-${opt.id}`}
                   className={`option ${isWrong ? 'is-wrong' : ''} ${isRight ? 'is-right' : ''}`}
-                  style={{ fontFamily: a.font }}
+                  style={glyphStyle(a, opt)}
                   onClick={() => pick(opt)}
                   disabled={isWrong}
                   aria-label={`Option ${opt.name}`}

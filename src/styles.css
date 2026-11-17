@@ -10,6 +10,17 @@
   unicode-range: U+0780-07BF;
 }
 
+/* Arabic letters use KFGQPC Hafs Uthmanic Script (King Fahd Glorious Qur'an
+   Printing Complex). Its licence allows free use and distribution of the
+   unmodified font file. */
+@font-face {
+  font-family: 'KFGQPC Hafs';
+  src: url('./assets/fonts/KFGQPC_Hafs_Uthmanic_Script.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
 :root {
   --bg: #fff8ef;
   --card: #ffffff;
@@ -115,6 +126,7 @@ h1, h2, p { margin: 0; }
 
 /* ---------- Progress ring / bar ---------- */
 .glyph { position: relative; top: var(--gy, 0); font-style: normal; }
+.lang-letters, .tile-char, .option, .intro-letter, .done-char { -webkit-text-stroke: var(--stroke, 0) currentColor; }
 .ring { position: relative; flex: none; }
 .ring svg { display: block; }
 .ring-label { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; font-size: .95rem; }

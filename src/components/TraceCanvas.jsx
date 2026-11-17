@@ -42,7 +42,22 @@ function referenceBox(font, chars) {
   return refBoxCache.get(key);
 }
 
-export default function TraceCanvas({ char, font, theme, onComplete, reference = [char] }) {
+// Draw the letter, optionally thickened by stroking its outline – used for
+// fonts with thin strokes so there is room for little fingers to colour.
+function drawShape(ctx, char, glyph, thicken, color) {
+  ctx.font = glyph.font;
+  ctx.fillStyle = color;
+  ctx.fillText(char, glyph.x, glyph.y);
+  if (thicken > 0) {
+    ctx.lineWidth = thicken;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = color;
+    ctx.strokeText(char, glyph.x, glyph.y);
+  }
+}
+
+export default function TraceCanvas({ char, font, theme, onComplete, reference = [char], thicken = 0 }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const st = useRef({}); // mutable drawing state, not needed for React renders
@@ -89,13 +104,19 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, S, S);
-    ctx.font = glyph.font;
-    ctx.fillStyle = theme.soft;
-    ctx.fillText(char, glyph.x, glyph.y);
+    const outline = Math.max(2, S * 0.008);
+    if (glyph.thick > 0) {
+      // Thickened letter: solid outline ring drawn underneath the shape.
+      drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
+      drawShape(ctx, char, glyph, glyph.thick, theme.soft);
+      ctx.drawImage(s.layer, 0, 0, S, S);
+      return;
+    }
+    drawShape(ctx, char, glyph, 0, theme.soft);
     ctx.drawImage(s.layer, 0, 0, S, S);
     // Dashed outline on top so the shape is always visible.
     ctx.setLineDash([S * 0.018, S * 0.014]);
-    ctx.lineWidth = Math.max(2, S * 0.008);
+    ctx.lineWidth = outline;
     ctx.lineJoin = 'round';
     ctx.strokeStyle = theme.deep;
     ctx.strokeText(char, glyph.x, glyph.y);
@@ -143,14 +164,13 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           x: S / 2 - ((R - L) * scale) / 2,
           y: S / 2 - ((D - A) * scale) / 2,
           fontSize,
+          thick: thicken * fontSize,
         };
 
         const mask = makeCanvas(W, W);
         const mc = mask.getContext('2d');
         mc.setTransform(dpr, 0, 0, dpr, 0, 0);
-        mc.font = glyph.font;
-        mc.fillStyle = '#000';
-        mc.fillText(char, glyph.x, glyph.y);
+        drawShape(mc, char, glyph, glyph.thick, '#000');
 
         // Sample points inside the letter, used to measure coverage.
         const data = mc.getImageData(0, 0, W, W).data;
@@ -184,7 +204,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     return () => {
       cancelled = true;
     };
-  }, [char, font, size, render]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [char, font, size, thicken, render]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const measureCoverage = useCallback(() => {
     const s = st.current;

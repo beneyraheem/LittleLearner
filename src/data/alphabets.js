@@ -69,6 +69,9 @@ const dhivehi = [
   return { id, char, name, sound, guide: THAANA_GUIDES[id] };
 });
 
+// Number of dots on each Arabic letter (ت two above, ث three above, …).
+const ARABIC_DOTS = { 'ب': 1, 'ت': 2, 'ث': 3, 'ج': 1, 'خ': 1, 'ذ': 1, 'ز': 1, 'ش': 3, 'ض': 1, 'ظ': 1, 'غ': 1, 'ف': 1, 'ق': 2, 'ن': 1, 'ي': 2 };
+
 const arabic = [
   ['ا', 'Alif', 'ألف', 'a', 'أرنب', 'Arnab', 'rabbit', '🐰'],
   ['ب', 'Baa', 'باء', 'b', 'بطة', 'Batta', 'duck', '🦆'],
@@ -108,6 +111,7 @@ const arabic = [
   wordLatin,
   meaning,
   emoji,
+  dots: ARABIC_DOTS[char] || 0, // how many dots to tap when tracing
   // The Uthmanic font draws an isolated ي without its two dots (Qur'anic
   // style). Children need the dots, so this one letter uses Noto Sans Arabic.
   ...(char === 'ي' ? { font: '"Noto Sans Arabic", sans-serif' } : {}),

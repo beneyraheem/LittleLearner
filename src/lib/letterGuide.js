@@ -14,7 +14,7 @@
 const N = 160; // grid resolution
 const NB = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]]; // clockwise ring
 
-export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manual = null } = {}) {
+export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manual = null, dots = 0 } = {}) {
   const cell = W / N;
   const toCss = (i) => ({ x: ((i % N) + 0.5) * (cell / dpr), y: (Math.floor(i / N) + 0.5) * (cell / dpr) });
   const inside = new Uint8Array(N * N);
@@ -104,16 +104,25 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manu
   };
   const biggestCells = comps.reduce((a, c) => (c.length > a.length ? c : a), []);
   const biggest = biggestCells.length, bigSpan = spanOf(biggestCells).span;
-  const taps = [];
-  comps.forEach((cells) => {
-    if (cells === biggestCells) return;
-    const { xs, ys, span } = spanOf(cells);
-    // small, compact marks next to the main shape: dots, to be tapped last
-    if (cells.length < biggest * 0.4 && span < bigSpan * 0.6) {
-      const cx = xs.reduce((a, b) => a + b, 0) / xs.length, cy = ys.reduce((a, b) => a + b, 0) / ys.length;
-      taps.push({ x: (cx + 0.5) * (cell / dpr), y: (cy + 0.5) * (cell / dpr) });
-      for (const c of cells) sk[c] = 0; // not part of the stroke graph
-    }
+  // small, compact marks next to the main shape: dots, to be tapped last
+  let dotParts = comps.filter((cells) => {
+    if (cells === biggestCells) return false;
+    const { span } = spanOf(cells);
+    return cells.length < biggest * 0.4 && span < bigSpan * 0.6;
+  });
+  for (const cells of dotParts) for (const c of cells) sk[c] = 0; // not part of the stroke graph
+  // In some fonts a letter's dots touch (ت, ث, ش, ق): split the biggest blob
+  // until there are as many dots as the letter has.
+  while (dots && dotParts.length && dotParts.length < dots) {
+    const big = dotParts.reduce((a, c) => (c.length > a.length ? c : a));
+    const halves = split2(big);
+    if (!halves) break;
+    dotParts = dotParts.filter((c) => c !== big).concat(halves);
+  }
+  const taps = dotParts.map((cells) => {
+    const { xs, ys } = spanOf(cells);
+    const cx = xs.reduce((a, b) => a + b, 0) / xs.length, cy = ys.reduce((a, b) => a + b, 0) / ys.length;
+    return { x: (cx + 0.5) * (cell / dpr), y: (cy + 0.5) * (cell / dpr) };
   });
 
   // ---- Skeleton graph: end points, junctions and the pieces between ------
@@ -372,7 +381,8 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manu
     if (Math.abs(dx) > hw) return rtl ? -dx : dx;
     return rtl ? along(t) - along(s) : along(s) - along(t);
   });
-  taps.sort((a, b) => a.y - b.y || (rtl ? b.x - a.x : a.x - b.x));
+  // dots: top row first; dots side by side in the script's direction (ت: right, then left)
+  taps.sort((a, b) => (Math.abs(a.y - b.y) > hw * 0.8 ? a.y - b.y : rtl ? b.x - a.x : a.x - b.x));
 
   // Hand-drawn guide (letters whose bends the centre line can't see, e.g.
   // Faafu's zigzag): use it instead, keeping the measured widths.
@@ -549,4 +559,23 @@ function chaikin(pts, rounds) {
     p = q;
   }
   return p;
+}
+
+// Split a blob of grid cells into two halves (2-means, seeded at its two ends).
+function split2(cells) {
+  if (cells.length < 4) return null;
+  const P = cells.map((c) => [c % N, Math.floor(c / N)]);
+  const xs = P.map((p) => p[0]), ys = P.map((p) => p[1]);
+  const wide = Math.max(...xs) - Math.min(...xs) >= Math.max(...ys) - Math.min(...ys);
+  const key = (p) => (wide ? p[0] : p[1]);
+  let a = P.reduce((m, p) => (key(p) < key(m) ? p : m)), b = P.reduce((m, p) => (key(p) > key(m) ? p : m));
+  let groups;
+  for (let it = 0; it < 10; it++) {
+    groups = [[], []];
+    P.forEach((p, i) => groups[(p[0] - a[0]) ** 2 + (p[1] - a[1]) ** 2 <= (p[0] - b[0]) ** 2 + (p[1] - b[1]) ** 2 ? 0 : 1].push(i));
+    if (!groups[0].length || !groups[1].length) return null;
+    const mean = (g) => [g.reduce((s, i) => s + P[i][0], 0) / g.length, g.reduce((s, i) => s + P[i][1], 0) / g.length];
+    [a, b] = [mean(groups[0]), mean(groups[1])];
+  }
+  return groups.map((g) => g.map((i) => cells[i]));
 }

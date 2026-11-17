@@ -1,8 +1,9 @@
 import { getAlphabet, glyphStyle } from '../data/alphabets';
 import { percentFor } from '../lib/progress';
 import TopBar from './TopBar';
+import CaseSwitch from './CaseSwitch';
 
-export default function LetterMap({ langId, progress, onBack, onLearn, onQuiz }) {
+export default function LetterMap({ langId, progress, onBack, onLearn, onQuiz, onEnglishCase }) {
   const a = getAlphabet(langId);
   const done = new Set(progress[langId].done);
   const pct = percentFor(progress, a);
@@ -11,6 +12,7 @@ export default function LetterMap({ langId, progress, onBack, onLearn, onQuiz })
   return (
     <div className="screen" style={{ '--main': a.theme.main, '--soft': a.theme.soft, '--deep': a.theme.deep, '--fs': a.displayScale, '--gy': a.glyphShift, '--stroke': a.textStroke }}>
       <TopBar onBack={onBack} title={a.title} theme={a.theme}>
+        {(langId === 'en' || langId === 'enl') && <CaseSwitch value={langId} onChange={onEnglishCase} />}
         <span className="pct-chip">{pct}%</span>
       </TopBar>
 

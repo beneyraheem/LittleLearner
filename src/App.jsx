@@ -22,6 +22,9 @@ export default function App() {
   const learn = (lang, index) => setScreen({ name: 'learn', lang, index });
   const quiz = (lang) => setScreen({ name: 'quiz', lang });
   const parent = () => setScreen({ name: 'parent' });
+  // English capitals (en) or small letters (enl), remembered per child
+  const englishCase = profile?.englishCase === 'enl' ? 'enl' : 'en';
+  const setEnglishCase = (id) => profile && store.updateProfile(profile.id, { englishCase: id });
   const askParent = () => setGate(true);
 
   const gateOverlay = gate && (
@@ -105,6 +108,10 @@ export default function App() {
           onBack={home}
           onLearn={(i) => learn(screen.lang, i)}
           onQuiz={() => quiz(screen.lang)}
+          onEnglishCase={(id) => {
+            setEnglishCase(id);
+            map(id);
+          }}
         />
       );
       break;
@@ -141,6 +148,8 @@ export default function App() {
           onOpen={map}
           onQuiz={quiz}
           onSwitch={() => setScreen({ name: 'who' })}
+          englishCase={englishCase}
+          onEnglishCase={setEnglishCase}
           onParent={askParent}
         />
       );

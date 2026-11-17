@@ -18,6 +18,9 @@ Built with React + Vite. No login: progress is saved in the browser (localStorag
    moves on.
 3. **Quiz** – listen to a letter and tap the right one out of four cards. 10 rounds, stars, best score saved.
 
+English has an **ABC | abc** switch (on the English card and letter map) to learn capital or small letters;
+each has its own lessons, tracing, quiz and progress, and the choice is remembered per child.
+
 Progress is shown as percentages on the home screen (per language and overall) and on each language's letter map.
 
 ### Children & parents

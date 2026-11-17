@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ALPHABETS } from '../data/alphabets';
+import { ALPHABETS, MAIN_ALPHABETS, variantsOf } from '../data/alphabets';
 
 // Everything is saved in localStorage – no login needed.
 //   profiles  – the children using this device
@@ -135,7 +135,11 @@ export function percentFor(progress, alphabet) {
 }
 
 export function overallPercent(progress) {
-  const all = ALPHABETS.map((a) => percentFor(progress, a));
+  // each card counts once; English = average of capitals and small letters
+  const all = MAIN_ALPHABETS.map((m) => {
+    const v = variantsOf(m.id).map((a) => percentFor(progress, a));
+    return v.reduce((x, y) => x + y, 0) / v.length;
+  });
   return Math.round(all.reduce((x, y) => x + y, 0) / all.length);
 }
 

@@ -34,7 +34,7 @@ export default function ParentMenu({ profiles, progressOf, onBack, onAdd, onEdit
                   const pct = percentFor(prog, a);
                   return (
                     <li key={a.id} style={{ '--main': a.theme.main }}>
-                      <span className="stat-name">{a.title}</span>
+                      <span className="stat-name">{a.statTitle || a.title}</span>
                       <span className="stat-bar">
                         <span style={{ width: `${pct}%` }} />
                       </span>

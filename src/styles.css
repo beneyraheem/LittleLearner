@@ -388,3 +388,10 @@ h1, h2, p { margin: 0; }
 }
 .pen-option.is-active { border-color: #ff7a59; background: #fff1ec; }
 .pen-preview { display: block; width: 70%; border-radius: 999px; background: #222; }
+
+/* English ABC | abc switch */
+.case-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 18px 4px; }
+.case-switch { display: inline-flex; background: var(--track); border-radius: 999px; padding: 3px; gap: 2px; }
+.case-switch button { padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 1rem; color: var(--muted); min-width: 56px; }
+.case-switch button.is-active { background: var(--main); color: #fff; box-shadow: 0 2px 0 var(--deep); }
+.child-stats li { grid-template-columns: 96px 1fr 44px; }

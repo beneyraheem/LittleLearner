@@ -51,6 +51,19 @@ const ENGLISH_GUIDES = {
   ],
 };
 
+// Small letters that need a hand-drawn path: p (stem first, from the top),
+// t (stem first, then the crossbar).
+const ENGLISH_LOWER_GUIDES = {
+  p: [
+    [[0.12, 0.06], [0.12, 0.35], [0.12, 0.65], [0.12, 0.94]],
+    [[0.2, 0.15], [0.35, 0.07], [0.55, 0.06], [0.75, 0.15], [0.86, 0.35], [0.76, 0.57], [0.55, 0.66], [0.35, 0.62], [0.2, 0.55]],
+  ],
+  t: [
+    [[0.42, 0.05], [0.42, 0.4], [0.42, 0.7], [0.45, 0.86], [0.6, 0.94], [0.85, 0.93]],
+    [[0.08, 0.36], [0.3, 0.36], [0.6, 0.36], [0.9, 0.36]],
+  ],
+};
+
 const english = [
   ['A', 'Apple', '🍎'], ['B', 'Ball', '⚽'], ['C', 'Cat', '🐱'], ['D', 'Dog', '🐶'],
   ['E', 'Elephant', '🐘'], ['F', 'Fish', '🐟'], ['G', 'Grapes', '🍇'], ['H', 'Hat', '🎩'],
@@ -201,9 +214,30 @@ export const ALPHABETS = [
   },
 ];
 
-// Attach recorded clips to their letters.
+// English small letters (a b c): a variant of English with its own lessons,
+// tracing and progress. Same words and sounds as the capitals.
+{
+  const en = ALPHABETS[0];
+  en.statTitle = 'English ABC';
+  ALPHABETS.splice(1, 0, {
+    ...en,
+    id: 'enl',
+    variantOf: 'en',
+    nativeTitle: 'abc',
+    statTitle: 'English abc',
+    letters: english.map((l) => ({ id: l.id, char: l.lower, name: l.lower, sound: l.sound, word: l.word, emoji: l.emoji, guide: ENGLISH_LOWER_GUIDES[l.lower] })),
+    // speak the capital ("A. A is for Apple") so voices say the letter name
+    phrase: (l, withWord) => en.phrase({ ...l, char: l.char.toUpperCase() }, withWord),
+  });
+}
+
+// The alphabets shown as cards (variants such as small letters live inside them).
+export const MAIN_ALPHABETS = ALPHABETS.filter((a) => !a.variantOf);
+export const variantsOf = (id) => ALPHABETS.filter((a) => a.id === id || a.variantOf === id);
+
+// Attach recorded clips to their letters (variants share their main alphabet's clips).
 for (const a of ALPHABETS) {
-  a.letters = a.letters.map((l) => ({ ...l, audio: l.audio ?? AUDIO[`${a.id}/${l.id}`] }));
+  a.letters = a.letters.map((l) => ({ ...l, audio: l.audio ?? AUDIO[`${a.variantOf || a.id}/${l.id}`] }));
 }
 
 export const getAlphabet = (id) => ALPHABETS.find((a) => a.id === id);

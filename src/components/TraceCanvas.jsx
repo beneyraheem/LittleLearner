@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { sfx } from '../lib/sfx';
-import { letterGuide } from '../lib/letterGuide';
+import { letterGuide, trackWidths } from '../lib/letterGuide';
 
 // The child paints inside the outlined letter with their finger.
 // Paint is clipped to the letter shape, and we measure how much of the
@@ -163,7 +163,7 @@ function drawDemo(ctx, s, theme) {
   }
 }
 
-export default function TraceCanvas({ char, font, theme, onComplete, reference = [char], thicken = 0, outlineScale = 1, rtl = false, weight = 700, startNear = null }) {
+export default function TraceCanvas({ char, font, theme, onComplete, reference = [char], thicken = 0, outlineScale = 1, rtl = false, weight = 700, startNear = null, guidePaths = null }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const st = useRef({}); // mutable drawing state, not needed for React renders
@@ -285,7 +285,26 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
         }
 
         // Centre-line guide dots and a crayon about as wide as the letter's stroke.
-        const guide = letterGuide(data, W, dpr, { rtl, startNear: startNear && { x: startNear[0] * S, y: startNear[1] * S } });
+        // The guide follows the letter's own pen shape (before thickening), so
+        // the dots keep its bends and waves; the crayon is sized from the
+        // thick track so one pass fills it.
+        const pen = makeCanvas(W, W).getContext('2d');
+        pen.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawShape(pen, char, glyph, 0, '#000');
+        const guide = letterGuide(pen.getImageData(0, 0, W, W).data, W, dpr, {
+          rtl,
+          startNear: startNear && { x: startNear[0] * S, y: startNear[1] * S },
+          // hand-drawn paths are given as fractions of the letter's ink box
+          manual:
+            guidePaths &&
+            guidePaths.map((stroke) =>
+              stroke.map(([fx, fy]) => ({
+                x: glyph.x - L * scale + fx * (L + R) * scale,
+                y: glyph.y - A * scale + fy * (A + D) * scale,
+              })),
+            ),
+        });
+        const widths = trackWidths(data, W, dpr);
         if (window.__debugGuide && guide) {
           // debug: how much of the letter is far from every guide stroke
           const pts = guide.strokes.flatMap((g) => g.points);
@@ -298,7 +317,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           window.__miss = { ratio: miss / samples.length, at: miss ? [Math.round(mx / miss), Math.round(my / miss)] : null };
         }
         const brush = guide
-          ? Math.min(S * 0.17, Math.max(14, guide.halfWidth * 2 * 1.3, guide.wideHalf * 2 * 1.15))
+          ? Math.min(S * 0.17, Math.max(14, (widths?.half ?? guide.halfWidth) * 2 * 1.3, (widths?.wide ?? guide.wideHalf) * 2 * 1.15))
           : Math.max(12, S * 0.065);
 
         const paint = makeCanvas(W, W);
@@ -322,7 +341,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     return () => {
       cancelled = true;
     };
-  }, [char, font, size, thicken, rtl, weight, startNear?.join(), render]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [char, font, size, thicken, rtl, weight, startNear?.join(), JSON.stringify(guidePaths), render]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const measureCoverage = useCallback(() => {
     const s = st.current;

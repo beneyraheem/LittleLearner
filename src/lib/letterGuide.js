@@ -14,7 +14,7 @@
 const N = 160; // grid resolution
 const NB = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]]; // clockwise ring
 
-export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null } = {}) {
+export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manual = null } = {}) {
   const cell = W / N;
   const toCss = (i) => ({ x: ((i % N) + 0.5) * (cell / dpr), y: (Math.floor(i / N) + 0.5) * (cell / dpr) });
   const inside = new Uint8Array(N * N);
@@ -201,6 +201,9 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null } = {
       if (dist[tip] > median * 0.6) continue; // a real stroke end, not a corner artefact
       if ((aEnd && deg[e.b] >= 3) || (bEnd && deg[e.a] >= 3)) {
         e.dead = true;
+        // a short branch into a bump or tooth (Faafu's bends) becomes a detour:
+        // the guide goes in and back out, so tracing covers it
+        if (e.cells.length >= halfCells * 0.7) e.detour = aEnd ? [...e.cells].reverse() : e.cells; // junction → tip
         removed = true;
         deg[e.a]--;
         deg[e.b]--;
@@ -292,6 +295,24 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null } = {
     return { pts, closed };
   });
   polys = tidy(polys, hw);
+
+  // Splice the bump detours into the stroke that passes their junction.
+  for (const e of edges) {
+    if (!e.detour) continue;
+    const spur = smooth(e.detour.map(toCss), false);
+    const J = spur[0];
+    let best = null;
+    polys.forEach((s, si) =>
+      s.pts.forEach((p, k) => {
+        const dd = Math.hypot(p.x - J.x, p.y - J.y);
+        if (dd < hw * 1.5 && (!best || dd < best.dd)) best = { si, k, dd };
+      }),
+    );
+    if (!best) continue;
+    const s = polys[best.si];
+    const out = [...spur, ...[...spur].reverse()];
+    s.pts = [...s.pts.slice(0, best.k + 1), ...out, ...s.pts.slice(best.k)];
+  }
   polys = polys.filter((s, _, all) => lengthOf(s.pts) >= hw * 1.3 || all.length === 1);
 
   // A start hint in the middle of a stroke (P, R: top of the stem) splits it
@@ -352,6 +373,17 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null } = {
     return rtl ? along(t) - along(s) : along(s) - along(t);
   });
   taps.sort((a, b) => a.y - b.y || (rtl ? b.x - a.x : a.x - b.x));
+
+  // Hand-drawn guide (letters whose bends the centre line can't see, e.g.
+  // Faafu's zigzag): use it instead, keeping the measured widths.
+  if (manual) {
+    strokes = manual.filter((pts) => pts.length > 1).map((pts) => {
+      const p = chaikin(pts, 2);
+      return { points: p, closed: false, length: lengthOf(p) };
+    });
+    taps.length = 0;
+    for (const pts of manual) if (pts.length === 1) taps.push(pts[0]);
+  }
 
   // Evenly spaced guide dots along each stroke.
   const spacing = Math.max(halfWidth * 0.9, 9);
@@ -467,4 +499,54 @@ function tidy(polys, hw) {
     break;
   }
   return polys;
+}
+
+// Stroke half-widths (CSS px) of the thick tracing shape, for sizing the crayon:
+// `half` is the typical width, `wide` covers the thicker parts (bends, bumps).
+// Uses the ridge of the distance-to-edge map (cells at least as far from the
+// edge as all their neighbours), which runs along the middle of each stroke.
+export function trackWidths(alpha, W, dpr) {
+  const cell = W / N;
+  const dist = new Float32Array(N * N);
+  for (let gy = 0; gy < N; gy++)
+    for (let gx = 0; gx < N; gx++) {
+      const x = Math.min(W - 1, Math.floor((gx + 0.5) * cell)), y = Math.min(W - 1, Math.floor((gy + 0.5) * cell));
+      dist[gy * N + gx] = alpha[(y * W + x) * 4 + 3] > 128 ? 1e9 : 0;
+    }
+  const at = (x, y) => (x < 0 || y < 0 || x >= N || y >= N ? 0 : dist[y * N + x]);
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const i = y * N + x;
+      if (dist[i]) dist[i] = Math.min(dist[i], at(x - 1, y) + 3, at(x, y - 1) + 3, at(x - 1, y - 1) + 4, at(x + 1, y - 1) + 4);
+    }
+  for (let y = N - 1; y >= 0; y--)
+    for (let x = N - 1; x >= 0; x--) {
+      const i = y * N + x;
+      if (dist[i]) dist[i] = Math.min(dist[i], at(x + 1, y) + 3, at(x, y + 1) + 3, at(x + 1, y + 1) + 4, at(x - 1, y + 1) + 4);
+    }
+  const ridge = [];
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const v = dist[y * N + x];
+      if (v >= 6 && NB.every(([dx, dy]) => at(x + dx, y + dy) <= v)) ridge.push(v);
+    }
+  if (!ridge.length) return null;
+  ridge.sort((a, b) => a - b);
+  const px = (v) => (v * cell) / 3 / dpr;
+  return { half: px(ridge[Math.floor(ridge.length / 2)]), wide: px(ridge[Math.floor(ridge.length * 0.9)]) };
+}
+
+// Round the corners of a hand-drawn path a little (keeps both end points).
+function chaikin(pts, rounds) {
+  let p = pts;
+  for (let r = 0; r < rounds; r++) {
+    const q = [p[0]];
+    for (let i = 0; i < p.length - 1; i++) {
+      const a = p[i], b = p[i + 1];
+      q.push({ x: a.x * 0.75 + b.x * 0.25, y: a.y * 0.75 + b.y * 0.25 }, { x: a.x * 0.25 + b.x * 0.75, y: a.y * 0.25 + b.y * 0.75 });
+    }
+    q.push(p.at(-1));
+    p = q;
+  }
+  return p;
 }

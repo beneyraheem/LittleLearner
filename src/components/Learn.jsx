@@ -106,6 +106,7 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
             rtl={a.dir === 'rtl'}
             weight={a.traceWeight || 700}
             startNear={letter.startNear}
+            guidePaths={letter.guide}
             theme={a.theme}
             reference={referenceChars}
             onComplete={handleTraced}

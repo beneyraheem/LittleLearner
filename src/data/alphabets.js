@@ -44,6 +44,18 @@ const english = [
   emoji,
 }));
 
+// Hand-drawn tracing paths for Thaana letters whose bends overlap in the
+// MV Waheed font, so the automatic centre line can't see them. Each stroke is
+// a list of [x, y] points as fractions of the letter's ink box (0,0 = top
+// left); a single point is a dot to tap.
+const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
+const THAANA_GUIDES = {
+  faafu: [FAAFU],
+  paviyani: [FAAFU, [[0.64, 0.91]]],
+  daviyani: [[[0.45, 0.08], [0.3, 0.18], [0.17, 0.3], [0.15, 0.4], [0.35, 0.42], [0.6, 0.45], [0.5, 0.55], [0.3, 0.66], [0.2, 0.78], [0.35, 0.86], [0.6, 0.88], [0.88, 0.84]]],
+  laamu: [[[0.64, 0.07], [0.58, 0.18], [0.42, 0.31], [0.6, 0.3], [0.8, 0.28], [0.93, 0.27], [0.75, 0.42], [0.5, 0.58], [0.3, 0.72], [0.07, 0.85]]],
+};
+
 // Thaana – the 24 base letters in traditional order.
 const dhivehi = [
   ['ހ', 'Haa', 'h'], ['ށ', 'Shaviyani', 'sh'], ['ނ', 'Noonu', 'n'], ['ރ', 'Raa', 'r'],
@@ -54,7 +66,7 @@ const dhivehi = [
   ['ޔ', 'Yaa', 'y'], ['ޕ', 'Paviyani', 'p'], ['ޖ', 'Javiyani', 'j'], ['ޗ', 'Chaviyani', 'ch'],
 ].map(([char, name, sound]) => {
   const id = name.toLowerCase();
-  return { id, char, name, sound };
+  return { id, char, name, sound, guide: THAANA_GUIDES[id] };
 });
 
 const arabic = [

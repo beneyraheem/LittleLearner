@@ -324,6 +324,28 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manu
   }
   polys = polys.filter((s, _, all) => lengthOf(s.pts) >= hw * 1.3 || all.length === 1);
 
+  // The centre line stops about half a stroke short of each rounded tip, so
+  // stretch open strokes out to the real ends of the letter: a stroke then
+  // starts right at the top of the letter, not a little below it.
+  const insideAt = (x, y) => {
+    const gx = Math.floor((x * dpr) / cell), gy = Math.floor((y * dpr) / cell);
+    return gx >= 0 && gy >= 0 && gx < N && gy < N && inside[gy * N + gx] === 1;
+  };
+  const extend = (pts) => {
+    if (pts.length < 3) return pts;
+    const a = pts[0], b = pts[Math.min(pts.length - 1, 6)];
+    const l = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    const dx = (a.x - b.x) / l, dy = (a.y - b.y) / l;
+    let t = 0;
+    while (t < hw * 2.5 && insideAt(a.x + dx * (t + 1), a.y + dy * (t + 1))) t += 1;
+    t -= Math.max(2, hw * 0.3); // stay a little inside the tip
+    if (t <= 1) return pts;
+    const added = [];
+    for (let k = Math.floor(t); k > 0; k -= 2) added.push({ x: a.x + dx * k, y: a.y + dy * k });
+    return [...added, ...pts];
+  };
+  polys = polys.map((s) => (s.closed ? s : { ...s, pts: extend([...extend(s.pts)].reverse()).reverse() }));
+
   // A start hint in the middle of a stroke (P, R: top of the stem) splits it
   // there into two strokes that both start at the hint.
   if (startNear) {

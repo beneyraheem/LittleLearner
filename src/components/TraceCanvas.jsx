@@ -8,8 +8,9 @@ import { letterGuide, trackWidths } from '../lib/letterGuide';
 
 const COMPLETE_AT = 0.8; // fraction of the letter that must be coloured
 const TRACK_EXTRA = 0.02; // every letter is drawn a little bolder (fraction of font size)
+// Pen colours: black first (the default), the multi-colour pen last.
 const CRAYONS = [
-  { id: 'rainbow', label: 'Rainbow', swatch: 'conic-gradient(#ff5b5b, #ffb03a, #ffe14d, #4cd964, #3ab0ff, #9b6bff, #ff5b5b)' },
+  { id: '#222222', label: 'Black' },
   { id: '#ff5b5b', label: 'Red' },
   { id: '#ffb03a', label: 'Orange' },
   { id: '#ffd23f', label: 'Yellow' },
@@ -17,6 +18,7 @@ const CRAYONS = [
   { id: '#3ab0ff', label: 'Blue' },
   { id: '#9b6bff', label: 'Purple' },
   { id: '#ff6fb5', label: 'Pink' },
+  { id: 'rainbow', label: 'Rainbow', swatch: 'conic-gradient(#ff5b5b, #ffb03a, #ffe14d, #4cd964, #3ab0ff, #9b6bff, #ff5b5b)' },
 ];
 
 function makeCanvas(w, h) {
@@ -147,7 +149,7 @@ function drawDemo(ctx, s, theme) {
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.lineWidth = s.brush * 0.55;
+  ctx.lineWidth = s.pen * 1.4;
   ctx.strokeStyle = theme.main;
   ctx.globalAlpha = 0.45;
   let left = demo.d, head = null;
@@ -156,7 +158,7 @@ function drawDemo(ctx, s, theme) {
     if (st.tap) {
       head = st.points[0];
       ctx.beginPath();
-      ctx.arc(head.x, head.y, s.brush * 0.3, 0, Math.PI * 2);
+      ctx.arc(head.x, head.y, s.pen * 1.6, 0, Math.PI * 2);
       ctx.fillStyle = theme.main;
       ctx.fill();
       left -= s.tapLen;
@@ -195,7 +197,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
   const [ready, setReady] = useState(false);
   const [coverage, setCoverage] = useState(0);
   const [done, setDone] = useState(false);
-  const [crayon, setCrayon] = useState('rainbow');
+  const [crayon, setCrayon] = useState('#222222');
   const [demoOn, setDemoOn] = useState(false);
   const rafRef = useRef(0);
   const crayonRef = useRef(crayon);
@@ -360,7 +362,11 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
         });
 
         st.current = {
-          S, dpr, W, glyph, mask, paint, samples, guide, brush, seq, startIdx,
+          S, dpr, W, glyph, mask, paint, samples, guide, seq, startIdx,
+          brush, // width of the letter's track (for how close is "on" the path)
+          // tracing pen: a thin line so the path and dots stay visible
+          // (letters without a guide keep the wide crayon and the colour-in rule)
+          pen: guide ? Math.max(5, S * 0.02) : brush,
           next: 0,
           reach: Math.max(brush * 0.5, 14), // how close the finger must pass to a dot
           maskData: data, // letter shape, to notice when the finger leaves the letter
@@ -396,8 +402,36 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     s.demo = null;
     cancelAnimationFrame(rafRef.current);
     setDemoOn(false);
-    // Magic fill: colour any gaps behind the child's strokes.
     const pc = s.paint.getContext('2d');
+    if (s.guide) {
+      // Finish neatly: draw the letter's strokes as a clean line in the pen colour.
+      pc.lineCap = 'round';
+      pc.lineJoin = 'round';
+      pc.lineWidth = s.pen * 1.2;
+      for (const g of s.guide.strokes) {
+        const pts = g.points;
+        if (g.tap) {
+          pc.fillStyle = colorFor();
+          pc.beginPath();
+          pc.arc(pts[0].x, pts[0].y, s.pen * 1.3, 0, Math.PI * 2);
+          pc.fill();
+          continue;
+        }
+        for (let i = 1; i < pts.length; i++) {
+          pc.strokeStyle = colorFor();
+          pc.beginPath();
+          pc.moveTo(pts[i - 1].x, pts[i - 1].y);
+          pc.lineTo(pts[i].x, pts[i].y);
+          pc.stroke();
+        }
+      }
+      render();
+      setCoverage(1);
+      setDone(true);
+      onComplete?.();
+      return;
+    }
+    // No guide: magic fill – colour any gaps behind the child's strokes.
     const g = pc.createLinearGradient(0, 0, s.S, s.S);
     ['#ff5b5b', '#ffb03a', '#ffe14d', '#4cd964', '#3ab0ff', '#9b6bff'].forEach((c, i, arr) =>
       g.addColorStop(i / (arr.length - 1), c),
@@ -513,7 +547,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     const pc = s.paint.getContext('2d');
     pc.fillStyle = colorFor();
     pc.beginPath();
-    pc.arc(p.x, p.y, s.brush / 2, 0, Math.PI * 2);
+    pc.arc(p.x, p.y, s.pen / 2, 0, Math.PI * 2);
     pc.fill();
     advance(p, p);
     render();
@@ -525,7 +559,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     e.preventDefault();
     const pc = s.paint.getContext('2d');
     const events = e.nativeEvent.getCoalescedEvents?.() || [e.nativeEvent];
-    pc.lineWidth = s.brush;
+    pc.lineWidth = s.pen;
     for (const ev of events) {
       const p = point(ev);
       pc.strokeStyle = colorFor();

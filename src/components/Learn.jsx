@@ -28,8 +28,8 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
   const handleTraced = useCallback(() => {
     onComplete(langId, letter.id);
     sfx.success();
-    setTimeout(cheer, 1100); // after the chime
-    setTimeout(() => setStage('done'), 900);
+    setTimeout(cheer, 600); // after the chime
+    setTimeout(() => setStage('done'), 350);
   }, [langId, letter.id, onComplete]);
 
   const goTo = (i) => {
@@ -112,45 +112,42 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
             reference={referenceChars}
             onComplete={handleTraced}
           />
-        </div>
-      )}
-
-      {stage === 'done' && (
-        <div className="overlay">
-          <Confetti />
-          <div className="card done-card pop-in">
-            <div className="done-stars">⭐⭐⭐</div>
-            <h2>Amazing!</h2>
-            <p>
-              You traced{' '}
-              <b style={glyphStyle(a, letter)} className="done-char">
-                <span className="glyph">{letter.char}</span>
-              </b>{' '}
-              ({letter.name})
-            </p>
-            <div className="done-actions">
-              <button className="btn btn-soft" onClick={() => {
-                  setAttempt((n) => n + 1);
-                  setStage('trace');
-                }}>
-                ↺ Again
-              </button>
-              {isLast ? (
-                <button className="btn btn-main btn-big" onClick={onQuiz}>
-                  🎯 Take the quiz!
+          {stage === 'done' && (
+            <div className="done-inline pop-in">
+              <Confetti count={36} />
+              <p className="done-inline-title">
+                ⭐ Amazing! You traced{' '}
+                <b style={glyphStyle(a, letter)} className="done-char">
+                  <span className="glyph">{letter.char}</span>
+                </b>
+              </p>
+              <div className="done-actions">
+                <button
+                  className="btn btn-soft"
+                  onClick={() => {
+                    setAttempt((n) => n + 1);
+                    setStage('trace');
+                  }}
+                >
+                  ↺ Try again
                 </button>
-              ) : (
-                <button className="btn btn-main btn-big" onClick={() => goTo(index + 1)}>
-                  Next letter →
+                {isLast ? (
+                  <button className="btn btn-main btn-big" onClick={onQuiz}>
+                    🎯 Take the quiz!
+                  </button>
+                ) : (
+                  <button className="btn btn-main btn-big" onClick={() => goTo(index + 1)}>
+                    Next letter →
+                  </button>
+                )}
+              </div>
+              {isLast && (
+                <button className="link-btn" onClick={onExit}>
+                  Back to letters
                 </button>
               )}
             </div>
-            {isLast && (
-              <button className="link-btn" onClick={onExit}>
-                Back to letters
-              </button>
-            )}
-          </div>
+          )}
         </div>
       )}
     </div>

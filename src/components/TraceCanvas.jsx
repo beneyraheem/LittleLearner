@@ -628,22 +628,24 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
         </button>
       )}
 
-      <div className="crayons" role="radiogroup" aria-label="Crayon colour">
-        {CRAYONS.map((c) => (
-          <button
-            key={c.id}
-            role="radio"
-            aria-checked={crayon === c.id}
-            aria-label={c.label}
-            className={`crayon ${crayon === c.id ? 'is-active' : ''}`}
-            style={{ background: c.swatch || c.id }}
-            onClick={() => setCrayon(c.id)}
-          />
-        ))}
-        <button className="crayon crayon-clear" aria-label="Start over" onClick={clear} disabled={done}>
-          ↺
-        </button>
-      </div>
+      {!done && (
+        <div className="crayons" role="radiogroup" aria-label="Crayon colour">
+          {CRAYONS.map((c) => (
+            <button
+              key={c.id}
+              role="radio"
+              aria-checked={crayon === c.id}
+              aria-label={c.label}
+              className={`crayon ${crayon === c.id ? 'is-active' : ''}`}
+              style={{ background: c.swatch || c.id }}
+              onClick={() => setCrayon(c.id)}
+            />
+          ))}
+          <button className="crayon crayon-clear" aria-label="Start over" onClick={clear} disabled={done}>
+            ↺
+          </button>
+        </div>
+      )}
     </div>
   );
 }

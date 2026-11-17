@@ -372,3 +372,7 @@ h1, h2, p { margin: 0; }
 }
 
 .show-me { margin-top: -4px; }
+
+/* Inline "letter done" row under the traced letter */
+.done-inline { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 6px; text-align: center; }
+.done-inline-title { font-size: 1.35rem; font-weight: 700; color: var(--deep); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }

@@ -21,6 +21,8 @@ const AUDIO = Object.fromEntries(
   }),
 );
 
+const ENGLISH_START = { B: [0.25, 0.15], N: [0.2, 0.85], P: [0.25, 0.15], R: [0.25, 0.15] };
+
 const english = [
   ['A', 'Apple', '🍎'], ['B', 'Ball', '⚽'], ['C', 'Cat', '🐱'], ['D', 'Dog', '🐶'],
   ['E', 'Elephant', '🐘'], ['F', 'Fish', '🐟'], ['G', 'Grapes', '🍇'], ['H', 'Hat', '🎩'],
@@ -30,6 +32,9 @@ const english = [
   ['U', 'Umbrella', '☂️'], ['V', 'Violin', '🎻'], ['W', 'Whale', '🐳'], ['X', 'Xylophone', '🎶'],
   ['Y', 'Yo-yo', '🪀'], ['Z', 'Zebra', '🦓'],
 ].map(([char, word, emoji]) => ({
+  // where the first stroke starts, for letters the automatic guide can't guess
+  // (canvas fractions: [x, y], 0,0 = top left)
+  startNear: ENGLISH_START[char],
   id: char.toLowerCase(),
   char,
   lower: char.toLowerCase(),
@@ -105,6 +110,7 @@ export const ALPHABETS = [
     dir: 'ltr',
     font: '"Fredoka", system-ui, sans-serif',
     traceOutline: 2.2, // thicker border around the letter when tracing
+    traceWeight: 500, // lighter Fredoka so English strokes are about as thick as the others
     theme: { main: '#ff7a59', soft: '#ffe3d9', deep: '#d9512f' },
     letters: english,
     // What to say for a letter: [text, language] in the native voice,

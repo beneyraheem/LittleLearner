@@ -103,6 +103,9 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
             font={fontOf(a, letter)}
             thicken={letter.font ? 0 : a.traceThicken || 0}
             outlineScale={a.traceOutline || 1}
+            rtl={a.dir === 'rtl'}
+            weight={a.traceWeight || 700}
+            startNear={letter.startNear}
             theme={a.theme}
             reference={referenceChars}
             onComplete={handleTraced}

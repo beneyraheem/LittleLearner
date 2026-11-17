@@ -6,9 +6,12 @@ Built with React + Vite. No login: progress is saved in the browser (localStorag
 ## How it works
 
 1. **Meet the letter** – a big letter card with its name, sound and an example word. The letter is spoken aloud.
-2. **Trace it** – the letter is shown as a dashed outline. The child colours it in with a finger
-   (rainbow or crayon colours). Paint stays inside the letter; a meter shows how much is filled.
-   At 80 % the letter magically fills in, is marked complete ⭐ and the child moves on to the next letter.
+2. **Trace it** – the letter is a bold track with guide dots along each stroke: a numbered green circle
+   shows where each stroke starts, arrows show the direction, and a finger demo plays once (👀 *Show me*
+   replays it). The guide is worked out automatically from the letter's shape (`src/lib/letterGuide.js`):
+   strokes start at the top, English goes left→right, Arabic/Thaana right→left, Arabic dots come last.
+   A letter can give a start hint (`startNear` in `src/data/alphabets.js`, e.g. N starts bottom-left).
+   At 80 % coloured the letter fills in, is marked complete ⭐ and the child moves on.
 3. **Quiz** – listen to a letter and tap the right one out of four cards. 10 rounds, stars, best score saved.
 
 Progress is shown as percentages on the home screen (per language and overall) and on each language's letter map.

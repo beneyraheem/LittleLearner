@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { sfx } from '../lib/sfx';
+import { letterGuide } from '../lib/letterGuide';
 
 // The child paints inside the outlined letter with their finger.
 // Paint is clipped to the letter shape, and we measure how much of the
 // letter has been coloured in. Once enough is covered the letter is complete.
 
 const COMPLETE_AT = 0.8; // fraction of the letter that must be coloured
+const TRACK_EXTRA = 0.02; // every letter is drawn a little bolder (fraction of font size)
 const CRAYONS = [
   { id: 'rainbow', label: 'Rainbow', swatch: 'conic-gradient(#ff5b5b, #ffb03a, #ffe14d, #4cd964, #3ab0ff, #9b6bff, #ff5b5b)' },
   { id: '#ff5b5b', label: 'Red' },
@@ -104,23 +106,23 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, S, S);
-    const outline = Math.max(2, S * 0.008);
-    if (glyph.thick > 0) {
-      // Thickened letter: solid outline ring drawn underneath the shape.
-      drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
-      drawShape(ctx, char, glyph, glyph.thick, theme.soft);
-      ctx.drawImage(s.layer, 0, 0, S, S);
-      return;
+    // The letter is a solid "track" with a bold border and a dotted
+    // centre line to follow; the child's crayon goes on top.
+    const outline = Math.max(3, S * 0.014);
+    drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
+    drawShape(ctx, char, glyph, glyph.thick, theme.soft);
+    if (s.guide) {
+      ctx.fillStyle = theme.main;
+      ctx.globalAlpha = 0.8;
+      const r = Math.max(3, Math.min(S * 0.014, s.guide.halfWidth * 0.4));
+      for (const d of s.guide.dots) {
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
     }
-    drawShape(ctx, char, glyph, 0, theme.soft);
     ctx.drawImage(s.layer, 0, 0, S, S);
-    // Dashed outline on top so the shape is always visible.
-    ctx.setLineDash([S * 0.018, S * 0.014]);
-    ctx.lineWidth = outline;
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = theme.deep;
-    ctx.strokeText(char, glyph.x, glyph.y);
-    ctx.setLineDash([]);
   }, [char, theme]);
 
   // (Re)build the letter mask whenever the letter or size changes.
@@ -164,7 +166,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           x: S / 2 - ((R - L) * scale) / 2,
           y: S / 2 - ((D - A) * scale) / 2,
           fontSize,
-          thick: thicken * fontSize,
+          thick: (thicken + TRACK_EXTRA) * fontSize,
         };
 
         const mask = makeCanvas(W, W);
@@ -183,6 +185,12 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           }
         }
 
+        // Centre-line guide dots and a crayon about as wide as the letter's stroke.
+        const guide = letterGuide(data, W, dpr);
+        const brush = guide
+          ? Math.min(S * 0.14, Math.max(14, guide.halfWidth * 2 * 1.2))
+          : Math.max(12, S * 0.065);
+
         const paint = makeCanvas(W, W);
         const pc = paint.getContext('2d');
         pc.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -190,9 +198,8 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
         pc.lineJoin = 'round';
 
         st.current = {
-          S, dpr, W, glyph, mask, paint, samples,
+          S, dpr, W, glyph, mask, paint, samples, guide, brush,
           layer: makeCanvas(W, W),
-          brush: Math.max(12, S * 0.065),
           hue: Math.floor(Math.random() * 360),
           last: null,
           lastCheck: 0,
@@ -336,7 +343,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           onPointerLeave={onUp}
         />
         {!ready && <div className="trace-loading">✏️</div>}
-        {ready && coverage === 0 && !done && <div className="trace-hint">👆 Colour inside the letter!</div>}
+        {ready && coverage === 0 && !done && <div className="trace-hint">👆 Trace the dots with your finger!</div>}
       </div>
 
       <div className="crayons" role="radiogroup" aria-label="Crayon colour">

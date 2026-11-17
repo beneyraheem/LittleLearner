@@ -27,8 +27,8 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
 
   const handleTraced = useCallback(() => {
     onComplete(langId, letter.id);
-    sfx.win();
-    setTimeout(cheer, 500);
+    sfx.success();
+    setTimeout(cheer, 1100); // after the chime
     setTimeout(() => setStage('done'), 900);
   }, [langId, letter.id, onComplete]);
 

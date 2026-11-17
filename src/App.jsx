@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStore } from './lib/progress';
+import { penScale } from './data/penSizes';
 import Home from './components/Home';
 import LetterMap from './components/LetterMap';
 import Learn from './components/Learn';
@@ -73,6 +74,7 @@ export default function App() {
           onAdd={() => setScreen({ name: 'profile', back: 'parent' })}
           onEdit={(id) => setScreen({ name: 'profile', id, back: 'parent' })}
           onReset={store.resetProfile}
+          onPen={(id, pen) => store.updateProfile(id, { pen })}
           onDelete={store.deleteProfile}
         />
       );
@@ -116,6 +118,7 @@ export default function App() {
           onComplete={store.completeLetter}
           onExit={() => map(screen.lang)}
           onQuiz={() => quiz(screen.lang)}
+          penScale={penScale(profile.pen)}
         />
       );
       break;

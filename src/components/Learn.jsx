@@ -7,7 +7,7 @@ import TraceCanvas from './TraceCanvas';
 import Confetti from './Confetti';
 
 // One lesson card per letter: meet the letter → trace it → celebrate → next.
-export default function Learn({ langId, startIndex, progress, onComplete, onExit, onQuiz }) {
+export default function Learn({ langId, startIndex, progress, onComplete, onExit, onQuiz, penScale = 1 }) {
   const a = getAlphabet(langId);
   const [index, setIndex] = useState(startIndex);
   const [stage, setStage] = useState('intro'); // intro | trace | done
@@ -108,6 +108,7 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
             startNear={letter.startNear}
             guidePaths={letter.guide}
             dotCount={letter.dots || 0}
+            penScale={penScale}
             theme={a.theme}
             reference={referenceChars}
             onComplete={handleTraced}

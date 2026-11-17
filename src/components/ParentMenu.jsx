@@ -2,9 +2,10 @@ import { ALPHABETS } from '../data/alphabets';
 import { overallPercent, percentFor, starsOf } from '../lib/progress';
 import Avatar from './Avatar';
 import TopBar from './TopBar';
+import { PEN_SIZES, DEFAULT_PEN } from '../data/penSizes';
 import InstallCard from './InstallCard';
 
-export default function ParentMenu({ profiles, progressOf, onBack, onAdd, onEdit, onReset, onDelete }) {
+export default function ParentMenu({ profiles, progressOf, onBack, onAdd, onEdit, onReset, onDelete, onPen }) {
   return (
     <div className="screen parent">
       <TopBar onBack={onBack} title="Parent menu" />
@@ -45,6 +46,27 @@ export default function ParentMenu({ profiles, progressOf, onBack, onAdd, onEdit
                   );
                 })}
               </ul>
+
+              <div className="pen-setting">
+                <span className="pen-title">✏️ Tracing line</span>
+                <div className="pen-options" role="radiogroup" aria-label={`Tracing line for ${p.name}`}>
+                  {PEN_SIZES.map((o) => {
+                    const on = (p.pen || DEFAULT_PEN) === o.id;
+                    return (
+                      <button
+                        key={o.id}
+                        role="radio"
+                        aria-checked={on}
+                        className={`pen-option ${on ? 'is-active' : ''}`}
+                        onClick={() => onPen(p.id, o.id)}
+                      >
+                        <span className="pen-preview" style={{ height: Math.max(2, 6 * o.scale) }} />
+                        {o.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div className="child-actions">
                 <button className="btn btn-soft btn-small" onClick={() => onEdit(p.id)}>

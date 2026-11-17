@@ -26,7 +26,8 @@ Progress is shown as percentages on the home screen (per language and overall) a
 - **Several children:** each child has their own progress. With more than one child the app opens on
   *Who's playing?*, and tapping the child's picture on the home screen switches child.
 - **Parent menu:** the 🔒 *Parents* button asks a simple sum (e.g. 7 + 5) so little ones can't wander in.
-  Parents can see each child's progress and quiz scores, add, edit or delete children, and reset progress.
+  Parents can see each child's progress and quiz scores, add, edit or delete children, reset progress, and
+  choose each child's **tracing line** thickness (Thin, Medium, Thick, Extra thick).
 - Everything is stored on the device (localStorage) – no accounts or servers.
 
 ## Install on a phone (PWA)

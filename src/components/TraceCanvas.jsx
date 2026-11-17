@@ -189,7 +189,7 @@ function drawDemo(ctx, s, theme) {
   }
 }
 
-export default function TraceCanvas({ char, font, theme, onComplete, reference = [char], thicken = 0, outlineScale = 1, rtl = false, weight = 700, startNear = null, guidePaths = null, dotCount = 0 }) {
+export default function TraceCanvas({ char, font, theme, onComplete, reference = [char], thicken = 0, outlineScale = 1, rtl = false, weight = 700, startNear = null, guidePaths = null, dotCount = 0, penScale = 1 }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const st = useRef({}); // mutable drawing state, not needed for React renders
@@ -367,7 +367,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           brush, // width of the letter's track (for how close is "on" the path)
           // tracing pen: a thin line so the path and dots stay visible
           // (letters without a guide keep the wide crayon and the colour-in rule)
-          pen: guide ? Math.max(5, S * 0.02) : brush,
+          pen: guide ? Math.max(3, S * 0.02 * penScale) : brush,
           next: 0,
           reach: Math.max(brush * 0.5, 14), // how close the finger must pass to a dot
           maskData: data, // letter shape, to notice when the finger leaves the letter
@@ -385,7 +385,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     return () => {
       cancelled = true;
     };
-  }, [char, font, size, thicken, rtl, weight, startNear?.join(), JSON.stringify(guidePaths), dotCount, render]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [char, font, size, thicken, rtl, weight, startNear?.join(), JSON.stringify(guidePaths), dotCount, penScale, render]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const measureCoverage = useCallback(() => {
     const s = st.current;

@@ -22,6 +22,17 @@ Progress is shown as percentages on the home screen (per language and overall) a
   Parents can see each child's progress and quiz scores, add, edit or delete children, and reset progress.
 - Everything is stored on the device (localStorage) – no accounts or servers.
 
+## Install on a phone (PWA)
+
+Little Learner is a Progressive Web App: it can be added to the home screen and works offline after the
+first visit (fonts and letter sounds included).
+
+- **iPhone / iPad:** open the site in Safari → Share → *Add to Home Screen*.
+- **Android:** Chrome shows *Install app* (also available from the 🔒 Parents menu).
+
+On iPhone the home-screen app keeps its own storage, so profiles made in Safari don't carry over.
+Updates are picked up automatically the next time the app is opened online. Icons live in `public/icons/`.
+
 ## Run it
 
 ```bash

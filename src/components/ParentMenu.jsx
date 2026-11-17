@@ -2,6 +2,7 @@ import { ALPHABETS } from '../data/alphabets';
 import { overallPercent, percentFor, starsOf } from '../lib/progress';
 import Avatar from './Avatar';
 import TopBar from './TopBar';
+import InstallCard from './InstallCard';
 
 export default function ParentMenu({ profiles, progressOf, onBack, onAdd, onEdit, onReset, onDelete }) {
   return (
@@ -72,6 +73,7 @@ export default function ParentMenu({ profiles, progressOf, onBack, onAdd, onEdit
       <button className="btn btn-main btn-big add-child" onClick={onAdd}>
         ＋ Add a child
       </button>
+      <InstallCard />
       <p className="muted parent-note">Progress is saved on this device only.</p>
     </div>
   );

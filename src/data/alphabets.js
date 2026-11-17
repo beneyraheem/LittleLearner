@@ -21,7 +21,7 @@ const AUDIO = Object.fromEntries(
   }),
 );
 
-const ENGLISH_START = { N: [0.2, 0.85], P: [0.25, 0.15], R: [0.25, 0.15] };
+const ENGLISH_START = { N: [0.2, 0.85] };
 
 // Hand-drawn tracing paths (fractions of the letter's ink box, 0,0 = top left).
 // B: everything starts on the left – 1. the stem from the top-left down,
@@ -37,6 +37,17 @@ const ENGLISH_GUIDES = {
   D: [
     [[0.1, 0.07], [0.1, 0.4], [0.1, 0.7], [0.1, 0.93]],
     [[0.13, 0.08], [0.3, 0.08], [0.5, 0.09], [0.7, 0.16], [0.84, 0.32], [0.89, 0.5], [0.84, 0.68], [0.7, 0.84], [0.5, 0.91], [0.3, 0.92], [0.13, 0.92]],
+  ],
+  // P: 1. the stem from the top-left down, 2. from the top-left round the bump to the stem.
+  P: [
+    [[0.11, 0.07], [0.11, 0.4], [0.11, 0.7], [0.11, 0.93]],
+    [[0.14, 0.08], [0.35, 0.08], [0.6, 0.08], [0.78, 0.15], [0.87, 0.33], [0.8, 0.5], [0.6, 0.59], [0.35, 0.59], [0.14, 0.59]],
+  ],
+  // R: like P, then 3. the leg from the middle down to the bottom-right.
+  R: [
+    [[0.11, 0.07], [0.11, 0.4], [0.11, 0.7], [0.11, 0.92]],
+    [[0.14, 0.08], [0.35, 0.08], [0.6, 0.08], [0.78, 0.14], [0.86, 0.32], [0.8, 0.48], [0.6, 0.57], [0.35, 0.58], [0.14, 0.58]],
+    [[0.6, 0.6], [0.68, 0.71], [0.77, 0.83], [0.86, 0.94]],
   ],
 };
 

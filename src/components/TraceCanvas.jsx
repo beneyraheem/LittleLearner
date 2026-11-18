@@ -475,7 +475,6 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           hits: 0,
           reach: Math.max(brush * 0.5, 14), // how close the finger must pass to a dot
           maskData: data, // letter shape, to notice when the finger leaves the letter
-          lost: false,
           layer: makeCanvas(W, W),
           hue: Math.floor(Math.random() * 360),
           last: null,
@@ -513,6 +512,36 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
       // Keep the child's own lines and score them against the letter's path.
       const result = scoreTrace(s.ink, s.guide, s.brush, s.pen);
       s.result = result;
+      // Join up small gaps (the bit before the finish, where strokes meet) along
+      // the path, so the finished drawing looks whole. Big missed parts stay.
+      const near = s.pen * 0.8, maxGap = s.S * 0.2;
+      const inkLines = s.ink.filter((l) => l.length);
+      pc.lineCap = 'round';
+      pc.lineJoin = 'round';
+      pc.lineWidth = s.pen;
+      for (const g of s.guide.strokes) {
+        if (g.tap) continue;
+        const pts = along(g.points, 3);
+        const covered = pts.map((q) => inkLines.some((l) => distToLine(q, l) <= near));
+        for (let i = 0; i < pts.length; ) {
+          if (covered[i]) { i++; continue; }
+          let j = i;
+          while (j < pts.length && !covered[j]) j++;
+          const run = pts.slice(Math.max(0, i - 3), Math.min(pts.length, j + 3)); // overlap the child's line a little
+          let len = 0;
+          for (let k = 1; k < run.length; k++) len += Math.hypot(run[k].x - run[k - 1].x, run[k].y - run[k - 1].y);
+          if (len <= maxGap) {
+            for (let k = 1; k < run.length; k++) {
+              pc.strokeStyle = colorFor();
+              pc.beginPath();
+              pc.moveTo(run[k - 1].x, run[k - 1].y);
+              pc.lineTo(run[k].x, run[k].y);
+              pc.stroke();
+            }
+          }
+          i = j;
+        }
+      }
       render();
       setCoverage(1);
       setDone(true);
@@ -554,15 +583,14 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
   const advance = (a, b) => {
     const s = st.current;
     if (!s.seq?.length || s.finished) return;
-    // Leaving the letter during a drag stops that drag from counting (no
-    // sweeping over everything); lift and carry on.
+    // Moves outside the letter don't count (no sweeping across everything);
+    // counting picks up again as soon as the finger is back on the letter.
     const off = (q) =>
       [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => {
         const x = Math.round((q.x + dx * s.brush * 0.3) * s.dpr), y = Math.round((q.y + dy * s.brush * 0.3) * s.dpr);
         return x < 0 || y < 0 || x >= s.W || y >= s.W || s.maskData[(y * s.W + x) * 4 + 3] < 100;
       });
-    if (off(b)) s.lost = true;
-    if (s.lost) return;
+    if (off(a) || off(b)) return;
     const before = s.hits;
     // dots passed in this move, in the order the finger reached them
     const dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy || 1;
@@ -640,7 +668,6 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     canvasRef.current.setPointerCapture?.(e.pointerId);
     const p = point(e);
     s.last = p;
-    s.lost = false;
     s.ink.push([p]);
     const pc = s.paint.getContext('2d');
     pc.fillStyle = colorFor();

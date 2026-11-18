@@ -309,11 +309,11 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
-  // Lhaviyani: two joined strokes – 1. from the top left, curving over the head and right
-  // along the bar; 2. from the end of the bar all the way down the tail.
+  // Lhaviyani (as drawn by the user): two joined strokes – 1. from the top, curving down to
+  // the left, round underneath and right to the end of the bar; 2. from there down the tail.
   lhaviyani: [
-    [[0.42, 0.3], [0.44, 0.18], [0.52, 0.1], [0.62, 0.09], [0.66, 0.16], [0.64, 0.27], [0.72, 0.31], [0.83, 0.28], [0.94, 0.27]],
-    [[0.94, 0.27], [0.92, 0.36], [0.82, 0.47], [0.65, 0.58], [0.45, 0.7], [0.25, 0.8], [0.08, 0.87]],
+    [[0.62, 0.13], [0.57, 0.18], [0.52, 0.24], [0.49, 0.3], [0.51, 0.35], [0.58, 0.37], [0.68, 0.36], [0.8, 0.33], [0.91, 0.3]],
+    [[0.91, 0.3], [0.8, 0.41], [0.7, 0.5], [0.6, 0.59], [0.5, 0.66], [0.4, 0.72], [0.3, 0.78], [0.2, 0.83], [0.13, 0.86]],
   ],
   // Dhaalu: three joined strokes – 1. a straight line from the top, left along the top bar to its tip;
   // 2. from that tip back under the bar, down and round the curve to the middle;

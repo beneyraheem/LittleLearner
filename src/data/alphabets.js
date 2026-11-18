@@ -309,6 +309,14 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Chaviyani: start from the top, then the Thaa pattern – 1. down the long top bar to the loop;
+  // 2. round the loop (down, right, up and back over the top) and on to the left;
+  // 3. down through the S-bend and along the bottom to the bottom left.
+  chaviyani: [
+    [[0.93, 0.07], [0.8, 0.155], [0.68, 0.24], [0.56, 0.32], [0.44, 0.44]],
+    [[0.44, 0.44], [0.46, 0.54], [0.53, 0.61], [0.62, 0.64], [0.71, 0.6], [0.77, 0.52], [0.76, 0.44], [0.7, 0.39], [0.6, 0.38], [0.5, 0.4], [0.4, 0.45], [0.31, 0.51], [0.23, 0.57]],
+    [[0.23, 0.57], [0.27, 0.63], [0.31, 0.69], [0.34, 0.76], [0.34, 0.83], [0.3, 0.88], [0.22, 0.91], [0.13, 0.91], [0.07, 0.89]],
+  ],
   // Javiyani: like Dhaalu, ending with a tail – 1. a straight line left along the top bar;
   // 2. back under the bar, down the right and round to the middle; 3. down the curve and along the tail.
   javiyani: [

@@ -392,7 +392,14 @@ const THAANA_GUIDES = {
   raa: [[[0.9, 0.12], [0.78, 0.2], [0.68, 0.3], [0.7, 0.45], [0.78, 0.58], [0.62, 0.48], [0.5, 0.36], [0.43, 0.26], [0.47, 0.36], [0.5, 0.46], [0.38, 0.6], [0.25, 0.72], [0.1, 0.82]]],
   faafu: [FAAFU],
   paviyani: [FAAFU, [[0.64, 0.91]]],
-  daviyani: [[[0.45, 0.08], [0.3, 0.18], [0.17, 0.3], [0.15, 0.4], [0.35, 0.42], [0.6, 0.45], [0.5, 0.55], [0.3, 0.66], [0.2, 0.78], [0.35, 0.86], [0.6, 0.88], [0.88, 0.84]]],
+  // Daviyani (as drawn by the user): four joined strokes – 1. straight down-left from the top;
+  // 2. curving right to the bend; 3. straight down-left; 4. curving along the bottom to the right.
+  daviyani: [
+    [[0.411, 0.117], [0.153, 0.347]],
+    [[0.153, 0.347], [0.288, 0.358], [0.432, 0.375], [0.541, 0.408], [0.616, 0.463]],
+    [[0.616, 0.463], [0.216, 0.755]],
+    [[0.216, 0.755], [0.324, 0.792], [0.468, 0.825], [0.649, 0.838], [0.775, 0.837], [0.883, 0.83]],
+  ],
   // Laamu (as drawn by the user): three joined strokes – 1. from the top of the hook down-left
   // to the end of the bar; 2. right along the bar; 3. from the bar's end down the tail.
   laamu: [

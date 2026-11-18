@@ -555,8 +555,9 @@ export const ALPHABETS = [
     speechLang: 'en',
     dir: 'ltr',
     font: '"Fredoka", system-ui, sans-serif',
-    traceOutline: 2.2, // thicker border around the letter when tracing
-    traceWeight: 500, // lighter Fredoka so English strokes are about as thick as the others
+    traceOutline: 1.4, // a slightly bolder border around the letter when tracing
+    traceWeight: 400, // regular Fredoka so English strokes are about as thick as the others
+    traceThicken: -0.012, // and less of the extra boldness every tracing letter gets
     theme: { main: '#ff7a59', soft: '#ffe3d9', deep: '#d9512f' },
     letters: english,
     // What to say for a letter: [text, language] in the native voice,

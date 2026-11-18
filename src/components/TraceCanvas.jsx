@@ -7,6 +7,7 @@ import { letterGuide, trackWidths } from '../lib/letterGuide';
 // letter has been coloured in. Once enough is covered the letter is complete.
 
 const COMPLETE_AT = 0.8; // fraction of the letter that must be coloured
+const DONE_AT = 0.7; // fraction of the path's dots passed before the last dot finishes the letter
 const TRACK_EXTRA = 0.02; // every letter is drawn a little bolder (fraction of font size)
 // Pen colours: the multi-colour pen (the default) is last.
 const CRAYONS = [
@@ -94,15 +95,17 @@ function scoreTrace(ink, guide, width, pen) {
   return { score, stars: score >= 80 ? 3 : score >= 60 ? 2 : 1 };
 }
 
-// After the letter is done: the letter's own path as a dashed line over the
-// child's drawing, so they can see how close they came.
-function drawCompare(ctx, guide, S, theme) {
+// The letter's path as a dashed line (with a light edge so it shows on any
+// colour). After the letter is done it is drawn over the child's lines, so
+// they can see how close they came.
+function drawPath(ctx, guide, S, theme, taps = true) {
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   for (const g of guide.strokes) {
     const pts = g.points;
     if (g.tap) {
+      if (!taps) continue;
       ctx.beginPath();
       ctx.arc(pts[0].x, pts[0].y, Math.max(5, S * 0.018), 0, Math.PI * 2);
       ctx.lineWidth = Math.max(2, S * 0.007);
@@ -113,11 +116,11 @@ function drawCompare(ctx, guide, S, theme) {
     ctx.beginPath();
     pts.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)));
     ctx.setLineDash([]);
-    ctx.lineWidth = Math.max(3, S * 0.011);
-    ctx.strokeStyle = 'rgba(255,255,255,.85)';
+    ctx.lineWidth = Math.max(5, S * 0.02);
+    ctx.strokeStyle = 'rgba(255,255,255,.9)';
     ctx.stroke();
-    ctx.setLineDash([Math.max(4, S * 0.016), Math.max(4, S * 0.014)]);
-    ctx.lineWidth = Math.max(2, S * 0.006);
+    ctx.setLineDash([Math.max(7, S * 0.03), Math.max(6, S * 0.024)]);
+    ctx.lineWidth = Math.max(3, S * 0.011);
     ctx.strokeStyle = theme.deep;
     ctx.stroke();
   }
@@ -152,53 +155,50 @@ function penFill(ctx, pen, x, y) {
   return g;
 }
 
-function drawGuide(ctx, guide, S, theme, startIdx = null, next = 0, pen = '#222222') {
-  const r = Math.max(3, Math.min(S * 0.013, guide.halfWidth * 0.38));
-  ctx.fillStyle = theme.main;
-  guide.strokes.forEach((st, si) => {
-    if (st.tap) return;
-    st.dots.forEach((d, j) => {
-      const k = startIdx ? startIdx[si] + j : -1;
-      if (k === next && j > 0) {
-        // the next dot to reach: a bigger dot in the pen's colour with a white ring
-        ctx.globalAlpha = 1;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, r * 1.9, 0, Math.PI * 2);
-        ctx.fillStyle = penFill(ctx, pen, d.x, d.y);
-        ctx.fill();
-        ctx.lineWidth = Math.max(2, r * 0.7);
-        ctx.strokeStyle = '#fff';
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, r * 1.9 + ctx.lineWidth / 2 + 1, 0, Math.PI * 2);
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = theme.deep;
-        ctx.stroke();
-        ctx.fillStyle = theme.main;
-        return;
-      }
-      if (j === 0) return; // start marker drawn separately
-      const arrow = j % 3 === 2 && j < st.dots.length - 1;
-      ctx.globalAlpha = arrow ? 0.95 : 0.7;
-      ctx.beginPath();
-      if (arrow) {
-        const a = r * 2.1;
-        ctx.save();
-        ctx.translate(d.x, d.y);
-        ctx.rotate(d.ang);
-        ctx.moveTo(a, 0);
-        ctx.lineTo(-a * 0.7, a * 0.8);
-        ctx.lineTo(-a * 0.35, 0);
-        ctx.lineTo(-a * 0.7, -a * 0.8);
-        ctx.closePath();
-        ctx.restore();
-      } else {
-        ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
-      }
-      ctx.fill();
-    });
-  });
-  ctx.globalAlpha = 1;
+// Of neighbouring dots along each stroke that were both passed, the share passed
+// in writing order – low when strokes are traced backwards.
+function forwardShare(s) {
+  let pairs = 0, fwd = 0;
+  for (let i = 1; i < s.seq.length; i++) {
+    if (s.seq[i].si !== s.seq[i - 1].si || !s.hit[i] || !s.hit[i - 1]) continue;
+    pairs++;
+    if (s.hit[i] > s.hit[i - 1]) fwd++;
+  }
+  return pairs ? fwd / pairs : 1;
+}
+
+// Dots passed going the right way (a stroke's start, or right after the dot
+// before it) – what the progress meter shows.
+function forwardDots(s) {
+  let n = 0;
+  for (let i = 0; i < s.seq.length; i++) {
+    if (!s.hit[i]) continue;
+    const start = i === 0 || s.seq[i].si !== s.seq[i - 1].si;
+    if (start || (s.hit[i - 1] && s.hit[i - 1] < s.hit[i])) n++;
+  }
+  return n;
+}
+
+// While tracing: the letter's path as a dashed line, and a dot in the pen's
+// colour where it finishes (reaching it completes the letter).
+function drawGuide(ctx, guide, S, theme, pen = '#222222', end = null) {
+  drawPath(ctx, guide, S, theme, false);
+  if (!end || end.tap) return; // a final tap is already marked by its ring
+  const r = Math.max(6, S * 0.024);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(end.x, end.y, r, 0, Math.PI * 2);
+  ctx.fillStyle = penFill(ctx, pen, end.x, end.y);
+  ctx.fill();
+  ctx.lineWidth = Math.max(2, r * 0.35);
+  ctx.strokeStyle = '#fff';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(end.x, end.y, r + ctx.lineWidth / 2 + 1, 0, Math.PI * 2);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = theme.deep;
+  ctx.stroke();
+  ctx.restore();
 }
 
 // Points every 2px along a polyline (where a start marker may be placed).
@@ -212,7 +212,7 @@ function alongLine(pts) {
 }
 
 // Numbered green circle where each stroke starts (Arabic dots: a ring to tap).
-function drawStarts(ctx, guide, S, startIdx = null, next = 0) {
+function drawStarts(ctx, guide, S, startIdx = null, hit = null) {
   const R = Math.max(10, S * 0.034);
   ctx.save();
   ctx.textAlign = 'center';
@@ -225,7 +225,7 @@ function drawStarts(ctx, guide, S, startIdx = null, next = 0) {
     const free = (d) => placed.every((q) => Math.hypot(d.x - q.x, d.y - q.y) > R * 2.2);
     const p = free(st.dots[0]) ? st.dots[0] : alongLine(st.points).find(free) || st.dots[0];
     placed.push(p);
-    if (startIdx && startIdx[i] < next) return; // stroke already started
+    if (startIdx && hit?.[startIdx[i]]) return; // stroke already started
     ctx.beginPath();
     ctx.arc(p.x, p.y, R, 0, Math.PI * 2);
     ctx.fillStyle = st.tap ? 'rgba(255,255,255,.92)' : '#22b45a';
@@ -339,12 +339,12 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     const outline = Math.max(3, S * 0.014 * outlineScale);
     drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
     drawShape(ctx, char, glyph, glyph.thick, theme.soft);
-    if (s.guide && !s.finished) drawGuide(ctx, s.guide, S, theme, s.startIdx, s.next, crayonRef.current);
+    if (s.guide && !s.finished) drawGuide(ctx, s.guide, S, theme, crayonRef.current, s.seq.at(-1));
     if (s.demo) drawDemo(ctx, s, theme);
     ctx.drawImage(s.layer, 0, 0, S, S);
-    if (s.guide && s.finished) drawCompare(ctx, s.guide, S, theme);
+    if (s.guide && s.finished) drawPath(ctx, s.guide, S, theme);
     // Start markers stay visible on top of the crayon until the letter is done.
-    if (s.guide && !s.finished) drawStarts(ctx, s.guide, S, s.startIdx, s.next);
+    if (s.guide && !s.finished) drawStarts(ctx, s.guide, S, s.startIdx, s.hit);
   }, [char, theme, outlineScale]);
 
   // Redraw when a new pen colour is picked (the next dot shows it).
@@ -461,7 +461,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
         const seq = [], startIdx = [];
         guide?.strokes.forEach((g, si) => {
           startIdx[si] = seq.length;
-          g.dots.forEach((d) => seq.push({ x: d.x, y: d.y, si }));
+          g.dots.forEach((d) => seq.push({ x: d.x, y: d.y, si, tap: !!g.tap }));
         });
 
         st.current = {
@@ -470,7 +470,9 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           // tracing pen: a thin line so the path and dots stay visible
           // (letters without a guide keep the wide crayon and the colour-in rule)
           pen: guide ? Math.max(3, S * 0.02 * penScale) : brush,
-          next: 0,
+          hit: new Uint32Array(seq.length), // when each guide dot was passed (0 = not yet)
+          tick: 0,
+          hits: 0,
           reach: Math.max(brush * 0.5, 14), // how close the finger must pass to a dot
           maskData: data, // letter shape, to notice when the finger leaves the letter
           lost: false,
@@ -545,14 +547,15 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     [measureCoverage, finish],
   );
 
-  // Move along the dot sequence while the finger's path passes the next dot.
-  // Only the next dot counts, so going the wrong way or jumping ahead doesn't.
+  // Tick off the guide dots the finger passes. Reaching the last dot finishes
+  // the letter once most of the path has been traced; wobbles and small
+  // mistakes are allowed and show up in the stars instead.
   const [progress, setProgress] = useState(0);
   const advance = (a, b) => {
     const s = st.current;
     if (!s.seq?.length || s.finished) return;
     // Leaving the letter during a drag stops that drag from counting (no
-    // sweeping over everything); lift and carry on from the last dot.
+    // sweeping over everything); lift and carry on.
     const off = (q) =>
       [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => {
         const x = Math.round((q.x + dx * s.brush * 0.3) * s.dpr), y = Math.round((q.y + dy * s.brush * 0.3) * s.dpr);
@@ -560,18 +563,26 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
       });
     if (off(b)) s.lost = true;
     if (s.lost) return;
-    const before = s.next;
-    const near = (d) => distToSegment(d, a, b) <= s.reach;
-    while (s.next < s.seq.length) {
-      if (near(s.seq[s.next])) s.next++;
-      // a dot a fast finger just missed: allow skipping one within the same stroke
-      else if (s.next + 1 < s.seq.length && s.seq[s.next + 1].si === s.seq[s.next].si && s.next > s.startIdx[s.seq[s.next].si] && near(s.seq[s.next + 1])) s.next += 2;
-      else break;
-    }
-    if (s.next !== before) {
-      setProgress(s.next / s.seq.length);
-      if (s.next >= s.seq.length) finish();
-    }
+    const before = s.hits;
+    // dots passed in this move, in the order the finger reached them
+    const dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy || 1;
+    s.seq
+      .map((d, i) => ({ i, t: ((d.x - a.x) * dx + (d.y - a.y) * dy) / l2 }))
+      .filter(({ i }) => !s.hit[i] && distToSegment(s.seq[i], a, b) <= s.reach)
+      .sort((p, q) => p.t - q.t)
+      .forEach(({ i }) => {
+        s.hit[i] = ++s.tick; // when it was passed, to tell the direction of travel
+        s.hits++;
+      });
+    if (s.hits !== before) setProgress(forwardDots(s) / s.seq.length);
+    const last = s.seq.length - 1;
+    // the finish: touch the last dot (closely, coming along the end of its stroke)
+    const first = s.startIdx[s.seq[last].si];
+    const leadUp = [1, 2, 3].map((k) => last - k).filter((i) => i >= first); // the dots leading to it
+    const atEnd = s.seq[last].tap || first === last
+      ? distToSegment(s.seq[last], a, b) <= s.reach
+      : leadUp.every((i) => s.hit[i]) && distToSegment(s.seq[last], a, b) <= Math.max(s.pen * 2, s.reach * 0.6);
+    if (atEnd && s.hits >= s.seq.length * DONE_AT && forwardShare(s) >= 0.6) finish();
   };
 
   const colorFor = () => {
@@ -676,7 +687,9 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     const s = st.current;
     if (!s.paint || s.finished) return;
     s.paint.getContext('2d').clearRect(0, 0, s.S, s.S);
-    s.next = 0;
+    s.hit = new Uint32Array(s.seq?.length || 0);
+    s.tick = 0;
+    s.hits = 0;
     s.ink = [];
     render();
     setCoverage(0);
@@ -688,7 +701,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
 
   return (
     <div className="trace">
-      <div className="trace-meter" aria-label={usesDots ? `${pct}% of the dots reached` : `Coloured ${pct}%`}>
+      <div className="trace-meter" aria-label={usesDots ? `${pct}% of the path traced` : `Coloured ${pct}%`}>
         <div className="trace-meter-fill" style={{ width: `${pct}%`, background: theme.main }} />
         <span>{done ? 'Done! ⭐' : `${pct}%`}</span>
       </div>
@@ -706,7 +719,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
         />
         {!ready && <div className="trace-loading">✏️</div>}
         {ready && (usesDots ? progress === 0 : coverage === 0) && !done && !demoOn && (
-          <div className="trace-hint">👆 Start at the green 1 and follow the arrows!</div>
+          <div className="trace-hint">👆 Start at the green 1 and follow the dashes!</div>
         )}
       </div>
 

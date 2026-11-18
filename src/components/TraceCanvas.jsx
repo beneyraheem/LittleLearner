@@ -340,7 +340,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
       drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
       drawShape(ctx, char, glyph, glyph.thick, theme.soft);
     }
-    if (s.guide && !s.finished) drawGuide(ctx, s.guide, S, theme, crayonRef.current, s.seq.at(-1));
+    if (s.guide && !s.finished) drawGuide(ctx, s.guide, S, theme, crayonRef.current, s.finishAt);
     if (s.demo) drawDemo(ctx, s, theme);
     ctx.drawImage(s.layer, 0, 0, S, S);
     // Start markers stay visible on top of the crayon until the letter is done.
@@ -471,6 +471,9 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           // (letters without a guide keep the wide crayon and the colour-in rule)
           pen: guide ? Math.max(3, S * 0.02 * penScale) : brush,
           hit: new Uint32Array(seq.length), // when each guide dot was passed (0 = not yet)
+          along: (startIdx[startIdx.length - 1] ?? 0) - 1, // how far along the last stroke the finger has come
+          // the finish: the very end of the last stroke (or the last dot to tap)
+          finishAt: guide?.strokes.length ? { ...guide.strokes.at(-1).points.at(-1), tap: !!guide.strokes.at(-1).tap } : null,
           tick: 0,
           hits: 0,
           reach: Math.max(brush * 0.5, 14), // how close the finger must pass to a dot
@@ -512,34 +515,53 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
       // Keep the child's own lines and score them against the letter's path.
       const result = scoreTrace(s.ink, s.guide, s.brush, s.pen);
       s.result = result;
-      // Join up small gaps (the bit before the finish, where strokes meet) along
-      // the path, so the finished drawing looks whole. Big missed parts stay.
-      const near = s.pen * 0.8, maxGap = s.S * 0.2;
+      // Close short gaps (a stroke begun a little late or lifted just before its
+      // end, a missed corner) along the path, joined onto the child's own line, so
+      // the drawing looks whole. Where their line runs alongside the path a little
+      // off-centre it is left alone (no doubled lines), and big missed parts stay.
+      const inkPts = s.ink.flatMap((l) => l);
       const inkLines = s.ink.filter((l) => l.length);
+      const dist = (q) => Math.min(...inkLines.map((l) => distToLine(q, l)));
+      const nearestInk = (q) => inkPts.reduce((b, p) => (Math.hypot(p.x - q.x, p.y - q.y) < Math.hypot(b.x - q.x, b.y - q.y) ? p : b), inkPts[0]);
+      const maxGap = s.S * 0.15;
       pc.lineCap = 'round';
       pc.lineJoin = 'round';
       pc.lineWidth = s.pen;
-      for (const g of s.guide.strokes) {
-        if (g.tap) continue;
-        const pts = along(g.points, 3);
-        const covered = pts.map((q) => inkLines.some((l) => distToLine(q, l) <= near));
-        for (let i = 0; i < pts.length; ) {
-          if (covered[i]) { i++; continue; }
-          let j = i;
-          while (j < pts.length && !covered[j]) j++;
-          const run = pts.slice(Math.max(0, i - 3), Math.min(pts.length, j + 3)); // overlap the child's line a little
-          let len = 0;
-          for (let k = 1; k < run.length; k++) len += Math.hypot(run[k].x - run[k - 1].x, run[k].y - run[k - 1].y);
-          if (len <= maxGap) {
-            for (let k = 1; k < run.length; k++) {
-              pc.strokeStyle = colorFor();
-              pc.beginPath();
-              pc.moveTo(run[k - 1].x, run[k - 1].y);
-              pc.lineTo(run[k].x, run[k].y);
-              pc.stroke();
+      const drawRun = (run) => {
+        for (let k = 1; k < run.length; k++) {
+          pc.strokeStyle = colorFor();
+          pc.beginPath();
+          pc.moveTo(run[k - 1].x, run[k - 1].y);
+          pc.lineTo(run[k].x, run[k].y);
+          pc.stroke();
+        }
+      };
+      if (inkPts.length) {
+        for (const g of s.guide.strokes) {
+          if (g.tap) continue;
+          const pts = along(g.points, 3);
+          const d = pts.map(dist);
+          for (let i = 0; i < pts.length; ) {
+            if (d[i] <= s.pen * 0.9) { i++; continue; }
+            let j = i;
+            while (j < pts.length && d[j] > s.pen * 0.9) j++;
+            const atStart = i === 0, atEnd = j === pts.length;
+            const run = pts.slice(i, j);
+            let len = 0;
+            for (let k = 1; k < run.length; k++) len += Math.hypot(run[k].x - run[k - 1].x, run[k].y - run[k - 1].y);
+            // alongside: their line runs next to this bit and carries on past it
+            // (a gap is where their line ends instead)
+            const mid = run[Math.floor(run.length / 2)];
+            const endsHere = inkLines.some((l) => [l[0], l.at(-1)].some((e) => Math.hypot(e.x - mid.x, e.y - mid.y) <= len / 2 + s.pen * 2));
+            const alongside = !endsHere && d.slice(i, j).every((v) => v <= Math.max(s.brush * 0.35, s.pen * 1.6));
+            if (!(atStart && atEnd) && len <= maxGap && !(alongside && !atStart && !atEnd)) {
+              const line = [...run];
+              if (!atStart) line.unshift(nearestInk(run[0]));
+              if (!atEnd) line.push(nearestInk(run.at(-1)));
+              drawRun(line);
             }
+            i = j;
           }
-          i = j;
         }
       }
       render();
@@ -604,12 +626,20 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
       });
     if (s.hits !== before) setProgress(forwardDots(s) / s.seq.length);
     const last = s.seq.length - 1;
-    // the finish: touch the last dot (closely, coming along the end of its stroke)
+    // The last stroke is followed from its start: the finger's place along it moves
+    // on as it passes the next few dots (a couple may be missed), so passing near
+    // its end from somewhere else (a loop, a crossing stroke) doesn't count.
     const first = s.startIdx[s.seq[last].si];
-    const leadUp = [1, 2, 3].map((k) => last - k).filter((i) => i >= first); // the dots leading to it
-    const atEnd = s.seq[last].tap || first === last
+    for (;;) {
+      let to = -1;
+      for (let k = s.along + 1; k <= Math.min(last, s.along + 3); k++) if (distToSegment(s.seq[k], a, b) <= s.reach) to = k;
+      if (to < 0) break;
+      s.along = to;
+    }
+    // the finish: the end of the last stroke (or its dot to tap), reached along the stroke
+    const atEnd = s.finishAt.tap || first === last
       ? distToSegment(s.seq[last], a, b) <= s.reach
-      : leadUp.every((i) => s.hit[i]) && distToSegment(s.seq[last], a, b) <= Math.max(s.pen * 2, s.reach * 0.6);
+      : s.along >= last - 2 && distToSegment(s.finishAt, a, b) <= Math.max(10, s.reach * 0.5);
     if (atEnd && s.hits >= s.seq.length * DONE_AT && forwardShare(s) >= 0.6) finish();
   };
 
@@ -715,6 +745,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     if (!s.paint || s.finished) return;
     s.paint.getContext('2d').clearRect(0, 0, s.S, s.S);
     s.hit = new Uint32Array(s.seq?.length || 0);
+    s.along = (s.startIdx?.at(-1) ?? 0) - 1;
     s.tick = 0;
     s.hits = 0;
     s.ink = [];

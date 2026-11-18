@@ -309,6 +309,13 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Thaa (as drawn by the user): two joined strokes – 1. from the middle, round the loop
+  // (down, right, up and back over the top) and on to the left; 2. from there down
+  // through the S-bend and along the bottom to the bottom left.
+  thaa: [
+    [[0.5, 0.3], [0.542, 0.371], [0.583, 0.422], [0.633, 0.449], [0.7, 0.473], [0.775, 0.478], [0.842, 0.449], [0.887, 0.389], [0.903, 0.289], [0.897, 0.2], [0.867, 0.144], [0.8, 0.107], [0.75, 0.102], [0.7, 0.124], [0.633, 0.162], [0.583, 0.2], [0.533, 0.244], [0.5, 0.273], [0.442, 0.322], [0.392, 0.367], [0.35, 0.411], [0.308, 0.462], [0.287, 0.493]],
+    [[0.287, 0.493], [0.333, 0.507], [0.375, 0.544], [0.4, 0.611], [0.408, 0.689], [0.392, 0.756], [0.358, 0.822], [0.3, 0.862], [0.217, 0.878], [0.163, 0.878], [0.108, 0.851], [0.095, 0.822]],
+  ],
   // Meemu (as drawn by the user): one stroke – from the top left, right along the top,
   // round the curve on the right, then all the way down the tail.
   meemu: [

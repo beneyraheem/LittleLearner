@@ -7,7 +7,7 @@ import { letterGuide, trackWidths } from '../lib/letterGuide';
 // letter has been coloured in. Once enough is covered the letter is complete.
 
 const COMPLETE_AT = 0.8; // fraction of the letter that must be coloured
-const DONE_AT = 0.7; // fraction of the path's dots passed before the last dot finishes the letter
+const STROKE_DONE_AT = 0.8; // fraction of each stroke's dots that must be passed (every dot to tap)
 const TRACK_EXTRA = 0.02; // every letter is drawn a little bolder (fraction of font size)
 // Pen colours: the multi-colour pen (the default) is last.
 const CRAYONS = [
@@ -163,6 +163,16 @@ function forwardShare(s) {
     if (s.hit[i] > s.hit[i - 1]) fwd++;
   }
   return pairs ? fwd / pairs : 1;
+}
+
+// Every stroke traced: most of each line's dots passed, and every dot tapped.
+function everyStrokeDone(s) {
+  return s.guide.strokes.every((g, si) => {
+    const from = s.startIdx[si], n = g.dots.length;
+    let hit = 0;
+    for (let i = from; i < from + n; i++) if (s.hit[i]) hit++;
+    return g.tap ? hit === n : hit >= Math.ceil(n * STROKE_DONE_AT);
+  });
 }
 
 // Dots passed going the right way (a stroke's start, or right after the dot
@@ -640,7 +650,8 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     const atEnd = s.finishAt.tap || first === last
       ? distToSegment(s.seq[last], a, b) <= s.reach
       : s.along >= last - 2 && distToSegment(s.finishAt, a, b) <= Math.max(10, s.reach * 0.5);
-    if (atEnd && s.hits >= s.seq.length * DONE_AT && forwardShare(s) >= 0.6) finish();
+    if (atEnd) s.reachedEnd = true; // remembered, so going back for a skipped stroke then finishes it
+    if (s.reachedEnd && everyStrokeDone(s) && forwardShare(s) >= 0.6) finish();
   };
 
   const colorFor = () => {
@@ -746,6 +757,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     s.paint.getContext('2d').clearRect(0, 0, s.S, s.S);
     s.hit = new Uint32Array(s.seq?.length || 0);
     s.along = (s.startIdx?.at(-1) ?? 0) - 1;
+    s.reachedEnd = false;
     s.tick = 0;
     s.hits = 0;
     s.ink = [];

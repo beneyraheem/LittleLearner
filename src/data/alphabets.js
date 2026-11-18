@@ -309,6 +309,8 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Haa (as drawn by the user): one gently curving stroke from the top right down to the bottom left.
+  haa: [[[0.92, 0.123], [0.8, 0.26], [0.7, 0.358], [0.6, 0.464], [0.5, 0.556], [0.4, 0.632], [0.3, 0.704], [0.2, 0.76], [0.145, 0.795]]],
   // Chaviyani: start from the top, then the Thaa pattern – 1. down the long top bar to the loop;
   // 2. round the loop (down, right, up and back over the top) and on to the left;
   // 3. down through the S-bend and along the bottom to the bottom left.

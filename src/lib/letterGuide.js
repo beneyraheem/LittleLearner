@@ -409,48 +409,8 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manu
   // Hand-drawn guide (letters whose bends the centre line can't see, e.g.
   // Faafu's zigzag): use it instead, keeping the measured widths.
   if (manual) {
-    // Hand-placed points can sit a little off the middle of the stroke, so
-    // slide each point across the stroke to its centre.
-    const penAt = (x, y) => {
-      const px = Math.round(x * dpr), py = Math.round(y * dpr);
-      return px >= 0 && py >= 0 && px < W && py < W && alpha[(py * W + px) * 4 + 3] > 128;
-    };
-    const toMiddle = (pts) => {
-      const dense = densify(pts, 2);
-      const moved = dense.map((p, i) => {
-        const a = dense[Math.max(0, i - 3)], b = dense[Math.min(dense.length - 1, i + 3)];
-        const tl = Math.hypot(b.x - a.x, b.y - a.y);
-        if (!tl || !penAt(p.x, p.y)) return p;
-        const nx = -(b.y - a.y) / tl, ny = (b.x - a.x) / tl; // across the stroke
-        const reach = (sgn) => {
-          let d = 0;
-          while (d < hw * 3 && penAt(p.x + sgn * nx * (d + 0.5), p.y + sgn * ny * (d + 0.5))) d += 0.5;
-          return d;
-        };
-        const d1 = reach(1), d2 = reach(-1);
-        // only where the stroke is a normal width (not a crossing, blob or bend)
-        if (d1 + d2 > hw * 4.4) return p;
-        const shift = Math.max(-hw * 1.2, Math.min(hw * 1.2, (d1 - d2) / 2));
-        return { x: p.x + nx * shift, y: p.y + ny * shift };
-      });
-      // a straight stroke (stem, bar) stays straight: move it as a whole
-      const A = dense[0], B = dense.at(-1), L = Math.hypot(B.x - A.x, B.y - A.y) || 1;
-      const straight = dense.every((p) => Math.abs((B.x - A.x) * (A.y - p.y) - (A.x - p.x) * (B.y - A.y)) / L < 1.5);
-      if (straight) {
-        const mx = moved.reduce((s, p, i) => s + p.x - dense[i].x, 0) / moved.length;
-        const my = moved.reduce((s, p, i) => s + p.y - dense[i].y, 0) / moved.length;
-        return dense.map((p) => ({ x: p.x + mx, y: p.y + my }));
-      }
-      // smooth out small wobbles, keeping the two ends where they are
-      return moved.map((p, i) => {
-        if (i < 2 || i > moved.length - 3) return p;
-        let x = 0, y = 0;
-        for (let k = -2; k <= 2; k++) { x += moved[i + k].x; y += moved[i + k].y; }
-        return { x: x / 5, y: y / 5 };
-      });
-    };
     strokes = manual.filter((pts) => pts.length > 1).map((pts) => {
-      const p = toMiddle(chaikin(pts, 2));
+      const p = chaikin(pts, 2);
       return { points: p, closed: false, length: lengthOf(p) };
     });
     taps.length = 0;
@@ -640,15 +600,4 @@ function split2(cells) {
     [a, b] = [mean(groups[0]), mean(groups[1])];
   }
   return groups.map((g) => g.map((i) => cells[i]));
-}
-
-// Extra points along a polyline so neighbouring points are at most `step` apart.
-function densify(pts, step) {
-  const out = [pts[0]];
-  for (let i = 1; i < pts.length; i++) {
-    const a = pts[i - 1], b = pts[i];
-    const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / step));
-    for (let k = 1; k <= n; k++) out.push({ x: a.x + ((b.x - a.x) * k) / n, y: a.y + ((b.y - a.y) * k) / n });
-  }
-  return out;
 }

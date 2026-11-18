@@ -14,7 +14,7 @@
 const N = 160; // grid resolution
 const NB = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]]; // clockwise ring
 
-export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manual = null, dots = 0 } = {}) {
+export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manual = null, dots = 0, centre = true } = {}) {
   const cell = W / N;
   const toCss = (i) => ({ x: ((i % N) + 0.5) * (cell / dpr), y: (Math.floor(i / N) + 0.5) * (cell / dpr) });
   const inside = new Uint8Array(N * N);
@@ -450,7 +450,7 @@ export function letterGuide(alpha, W, dpr, { rtl = false, startNear = null, manu
       });
     };
     strokes = manual.filter((pts) => pts.length > 1).map((pts) => {
-      const p = toMiddle(chaikin(pts, 2));
+      const p = centre ? toMiddle(chaikin(pts, 2)) : chaikin(pts, 2);
       return { points: p, closed: false, length: lengthOf(p) };
     });
     taps.length = 0;

@@ -309,6 +309,13 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Yaa (as drawn by the user): three joined strokes – 1. from the bottom of the hook up the
+  // right side; 2. left along the top; 3. down the long tail.
+  yaa: [
+    [[0.683, 0.747], [0.756, 0.667], [0.833, 0.566], [0.878, 0.444], [0.898, 0.303], [0.898, 0.141]],
+    [[0.898, 0.141], [0.844, 0.178], [0.778, 0.212], [0.689, 0.232], [0.622, 0.222], [0.578, 0.202], [0.549, 0.182]],
+    [[0.549, 0.182], [0.558, 0.242], [0.544, 0.313], [0.511, 0.384], [0.444, 0.485], [0.378, 0.566], [0.289, 0.667], [0.2, 0.747], [0.119, 0.818]],
+  ],
   // Taviyani (as described by the user): 1. the Baa part, traced like Baa (from the top middle,
   // right and round, then down left of the middle); 2. from there down and round the tail.
   taviyani: [

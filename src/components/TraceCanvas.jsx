@@ -72,7 +72,16 @@ function drawShape(ctx, char, glyph, thicken, color) {
 
 // Guide: dots along each stroke, with an arrow every few dots for direction.
 // Dots already reached are hidden; the next one to reach is highlighted.
-function drawGuide(ctx, guide, S, theme, startIdx = null, next = 0) {
+// The pen's colour for the next-dot indicator (the rainbow pen gets a colour wheel).
+function penFill(ctx, pen, x, y) {
+  if (pen !== 'rainbow') return pen;
+  if (!ctx.createConicGradient) return '#ff5b5b';
+  const g = ctx.createConicGradient(0, x, y);
+  ['#ff5b5b', '#ffb03a', '#ffe14d', '#4cd964', '#3ab0ff', '#9b6bff', '#ff5b5b'].forEach((c, i, a) => g.addColorStop(i / (a.length - 1), c));
+  return g;
+}
+
+function drawGuide(ctx, guide, S, theme, startIdx = null, next = 0, pen = '#222222') {
   const r = Math.max(3, Math.min(S * 0.013, guide.halfWidth * 0.38));
   ctx.fillStyle = theme.main;
   guide.strokes.forEach((st, si) => {
@@ -80,13 +89,18 @@ function drawGuide(ctx, guide, S, theme, startIdx = null, next = 0) {
     st.dots.forEach((d, j) => {
       const k = startIdx ? startIdx[si] + j : -1;
       if (k === next && j > 0) {
-        // the next dot to reach: a bigger white dot with a coloured ring
+        // the next dot to reach: a bigger dot in the pen's colour with a white ring
         ctx.globalAlpha = 1;
         ctx.beginPath();
         ctx.arc(d.x, d.y, r * 1.9, 0, Math.PI * 2);
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = penFill(ctx, pen, d.x, d.y);
         ctx.fill();
-        ctx.lineWidth = Math.max(2, r * 0.8);
+        ctx.lineWidth = Math.max(2, r * 0.7);
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, r * 1.9 + ctx.lineWidth / 2 + 1, 0, Math.PI * 2);
+        ctx.lineWidth = 1.5;
         ctx.strokeStyle = theme.deep;
         ctx.stroke();
         ctx.fillStyle = theme.main;
@@ -254,12 +268,17 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     const outline = Math.max(3, S * 0.014 * outlineScale);
     drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
     drawShape(ctx, char, glyph, glyph.thick, theme.soft);
-    if (s.guide) drawGuide(ctx, s.guide, S, theme, s.startIdx, s.next);
+    if (s.guide) drawGuide(ctx, s.guide, S, theme, s.startIdx, s.next, crayonRef.current);
     if (s.demo) drawDemo(ctx, s, theme);
     ctx.drawImage(s.layer, 0, 0, S, S);
     // Start markers stay visible on top of the crayon until the letter is done.
     if (s.guide && !s.finished) drawStarts(ctx, s.guide, S, s.startIdx, s.next);
   }, [char, theme, outlineScale]);
+
+  // Redraw when a new pen colour is picked (the next dot shows it).
+  useEffect(() => {
+    render();
+  }, [crayon, render]);
 
   // (Re)build the letter mask whenever the letter or size changes.
   useEffect(() => {

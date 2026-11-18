@@ -309,6 +309,12 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Gaafu (as drawn by the user): 1. from the top right, curving down-left to the middle;
+  // 2. from just below, down through the bend on the right and along the bottom to the left.
+  gaafu: [
+    [[0.895, 0.14], [0.8, 0.177], [0.7, 0.25], [0.617, 0.333], [0.537, 0.421]],
+    [[0.535, 0.438], [0.55, 0.49], [0.6, 0.542], [0.642, 0.583], [0.653, 0.656], [0.63, 0.713], [0.567, 0.767], [0.483, 0.808], [0.4, 0.842], [0.317, 0.848], [0.225, 0.848], [0.15, 0.825], [0.108, 0.808]],
+  ],
   // Thaa (as drawn by the user): two joined strokes – 1. from the middle, round the loop
   // (down, right, up and back over the top) and on to the left; 2. from there down
   // through the S-bend and along the bottom to the bottom left.

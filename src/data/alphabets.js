@@ -309,6 +309,11 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Meemu (as drawn by the user): one stroke – from the top left, right along the top,
+  // round the curve on the right, then all the way down the tail.
+  meemu: [
+    [[0.38, 0.223], [0.5, 0.2], [0.633, 0.185], [0.733, 0.179], [0.833, 0.189], [0.883, 0.232], [0.875, 0.295], [0.833, 0.368], [0.767, 0.453], [0.667, 0.547], [0.55, 0.642], [0.433, 0.726], [0.3, 0.811], [0.142, 0.867]],
+  ],
   // Vaavu (as drawn by the user): one stroke – from below the loop on the right, round the
   // loop (left, up, over the top, down the right) back to the start, then down the tail.
   vaavu: [

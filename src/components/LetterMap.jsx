@@ -6,6 +6,8 @@ import CaseSwitch from './CaseSwitch';
 export default function LetterMap({ langId, progress, onBack, onLearn, onQuiz, onEnglishCase }) {
   const a = getAlphabet(langId);
   const done = new Set(progress[langId].done);
+  const best = progress[langId].stars || {};
+  const starTotal = a.letters.reduce((n, l) => n + (best[l.id] || 0), 0);
   const pct = percentFor(progress, a);
   const nextIndex = Math.max(0, a.letters.findIndex((l) => !done.has(l.id)));
 
@@ -22,6 +24,7 @@ export default function LetterMap({ langId, progress, onBack, onLearn, onQuiz, o
         </div>
         <p className="map-sub">
           {done.size} of {a.letters.length} letters traced
+          {starTotal > 0 && <> · ★ {starTotal} of {a.letters.length * 3} stars</>}
           {progress[langId].quizBest > 0 && <> · Quiz best {progress[langId].quizBest}%</>}
         </p>
         <div className="map-actions">
@@ -43,13 +46,22 @@ export default function LetterMap({ langId, progress, onBack, onLearn, onQuiz, o
               key={l.id}
               className={`tile ${isDone ? 'is-done' : ''} ${isNext ? 'is-next' : ''}`}
               onClick={() => onLearn(i)}
-              aria-label={`${l.name}${isDone ? ', completed' : ''}`}
+              aria-label={`${l.name}${isDone ? `, completed${best[l.id] ? `, ${best[l.id]} of 3 stars` : ''}` : ''}`}
             >
               <span className="tile-char glyph" style={glyphStyle(a, l)}>
                 {l.char}
               </span>
               <span className="tile-name">{l.name}</span>
-              {isDone && <span className="tile-star">⭐</span>}
+              {isDone &&
+                (best[l.id] ? (
+                  <span className="tile-stars" aria-hidden="true">
+                    {[1, 2, 3].map((n) => (
+                      <span key={n} className={n <= best[l.id] ? 'on' : ''}>★</span>
+                    ))}
+                  </span>
+                ) : (
+                  <span className="tile-star">⭐</span>
+                ))}
             </button>
           );
         })}

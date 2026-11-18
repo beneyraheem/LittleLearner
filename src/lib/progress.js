@@ -4,12 +4,12 @@ import { ALPHABETS, MAIN_ALPHABETS, variantsOf } from '../data/alphabets';
 // Everything is saved in localStorage – no login needed.
 //   profiles  – the children using this device
 //   activeId  – who is playing right now
-//   progress  – per child: { [langId]: { done: [letterIds], quizBest, quizPlays } }
+//   progress  – per child: { [langId]: { done: [letterIds], stars: { [letterId]: best 1–3 }, quizBest, quizPlays } }
 const KEY = 'littlelearner.v2';
 const LEGACY_KEY = 'littlelearner.progress.v1'; // single-child progress from before profiles
 
 const emptyProgress = () =>
-  Object.fromEntries(ALPHABETS.map((a) => [a.id, { done: [], quizBest: 0, quizPlays: 0 }]));
+  Object.fromEntries(ALPHABETS.map((a) => [a.id, { done: [], stars: {}, quizBest: 0, quizPlays: 0 }]));
 
 // Fill in any languages missing from saved progress.
 function normalise(saved) {
@@ -61,11 +61,22 @@ export function useStore() {
     });
   }, []);
 
+  // Mark a letter traced and keep its best tracing stars (1–3).
   const completeLetter = useCallback(
-    (langId, letterId) =>
+    (langId, letterId, stars = 0) =>
       updateChild((p) => {
-        if (p[langId].done.includes(letterId)) return p;
-        return { ...p, [langId]: { ...p[langId], done: [...p[langId].done, letterId] } };
+        const l = p[langId];
+        const isDone = l.done.includes(letterId);
+        const best = l.stars?.[letterId] || 0;
+        if (isDone && stars <= best) return p;
+        return {
+          ...p,
+          [langId]: {
+            ...l,
+            done: isDone ? l.done : [...l.done, letterId],
+            stars: stars > best ? { ...(l.stars || {}), [letterId]: stars } : l.stars || {},
+          },
+        };
       }),
     [updateChild],
   );

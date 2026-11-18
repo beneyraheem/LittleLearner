@@ -334,9 +334,12 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     ctx.clearRect(0, 0, S, S);
     // The letter is a solid "track" with a bold border and a dotted
     // centre line to follow; the child's crayon goes on top.
-    const outline = Math.max(3, S * 0.014 * outlineScale);
-    drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
-    drawShape(ctx, char, glyph, glyph.thick, theme.soft);
+    // Once a guided letter is done, only the child's own drawing is shown.
+    if (!(s.guide && s.finished)) {
+      const outline = Math.max(3, S * 0.014 * outlineScale);
+      drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
+      drawShape(ctx, char, glyph, glyph.thick, theme.soft);
+    }
     if (s.guide && !s.finished) drawGuide(ctx, s.guide, S, theme, crayonRef.current, s.seq.at(-1));
     if (s.demo) drawDemo(ctx, s, theme);
     ctx.drawImage(s.layer, 0, 0, S, S);

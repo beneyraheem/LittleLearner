@@ -79,7 +79,6 @@ function drawGuide(ctx, guide, S, theme, startIdx = null, next = 0) {
     if (st.tap) return;
     st.dots.forEach((d, j) => {
       const k = startIdx ? startIdx[si] + j : -1;
-      if (startIdx && k < next) return; // already reached
       if (k === next && j > 0) {
         // the next dot to reach: a bigger white dot with a coloured ring
         ctx.globalAlpha = 1;

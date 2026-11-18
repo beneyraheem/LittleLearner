@@ -309,6 +309,11 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Vaavu (as drawn by the user): one stroke – from below the loop on the right, round the
+  // loop (left, up, over the top, down the right) back to the start, then down the tail.
+  vaavu: [
+    [[0.697, 0.483], [0.592, 0.521], [0.508, 0.479], [0.455, 0.385], [0.475, 0.271], [0.567, 0.167], [0.708, 0.121], [0.8, 0.156], [0.842, 0.25], [0.825, 0.365], [0.767, 0.448], [0.697, 0.483], [0.6, 0.552], [0.483, 0.646], [0.35, 0.74], [0.217, 0.812], [0.095, 0.854]],
+  ],
   // Alifu (as drawn by the user): both strokes start at the top of the curve –
   // 1. down the short hook on the right; 2. down the long arm to the bottom left.
   alifu: [

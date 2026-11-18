@@ -309,6 +309,13 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Javiyani: like Dhaalu, ending with a tail – 1. a straight line left along the top bar;
+  // 2. back under the bar, down the right and round to the middle; 3. down the curve and along the tail.
+  javiyani: [
+    [[0.92, 0.08], [0.8, 0.1], [0.675, 0.125], [0.55, 0.15]], // a straight line
+    [[0.55, 0.15], [0.66, 0.2], [0.78, 0.21], [0.86, 0.26], [0.88, 0.36], [0.84, 0.45], [0.74, 0.52], [0.6, 0.54], [0.47, 0.5], [0.36, 0.42]],
+    [[0.36, 0.42], [0.27, 0.5], [0.17, 0.59], [0.11, 0.7], [0.14, 0.8], [0.24, 0.87], [0.38, 0.9], [0.55, 0.9], [0.7, 0.89], [0.8, 0.89]],
+  ],
   // Yaa (as drawn by the user): three joined strokes – 1. from the bottom of the hook up the
   // right side; 2. left along the top; 3. down the long tail.
   yaa: [

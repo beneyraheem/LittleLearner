@@ -309,6 +309,12 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Seenu (as drawn by the user): two joined strokes – 1. from the top right along the whole
+  // body to the left end; 2. from there down into the tail.
+  seenu: [
+    [[0.92, 0.206], [0.9, 0.29], [0.867, 0.371], [0.811, 0.435], [0.733, 0.49], [0.644, 0.516], [0.578, 0.523], [0.489, 0.51], [0.4, 0.49], [0.311, 0.468], [0.233, 0.445], [0.19, 0.435]],
+    [[0.19, 0.435], [0.172, 0.532], [0.144, 0.629], [0.106, 0.726], [0.072, 0.8]],
+  ],
   // Gnaviyani (as drawn by the user): three joined strokes – 1. from the top right round the
   // right bump and up; 2. dipping through the middle bump; 3. down the left side, round the
   // bottom and along to the right.

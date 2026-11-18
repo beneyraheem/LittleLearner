@@ -309,6 +309,12 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Taviyani (as described by the user): 1. the Baa part, traced like Baa (from the top middle,
+  // right and round, then down left of the middle); 2. from there down and round the tail.
+  taviyani: [
+    [[0.55, 0.158], [0.658, 0.129], [0.784, 0.1], [0.892, 0.146], [0.937, 0.239], [0.892, 0.349], [0.775, 0.436], [0.604, 0.494], [0.424, 0.517], [0.262, 0.471], [0.172, 0.355], [0.208, 0.239], [0.298, 0.158], [0.406, 0.123], [0.496, 0.146], [0.514, 0.216], [0.505, 0.303], [0.478, 0.384], [0.442, 0.453], [0.406, 0.506]],
+    [[0.406, 0.506], [0.3, 0.53], [0.2, 0.57], [0.12, 0.64], [0.09, 0.73], [0.12, 0.83], [0.22, 0.9], [0.35, 0.92], [0.5, 0.91], [0.62, 0.88], [0.72, 0.82], [0.82, 0.79]],
+  ],
   // Zaviyani (as drawn by the user): six joined strokes – 1. from the top right to the centre;
   // 2. out to the lower right end of the crossbar; 3. back to the centre; 4. out to the upper
   // left end; 5. back to the centre; 6. down the big curve and along the bottom.

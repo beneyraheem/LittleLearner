@@ -95,9 +95,7 @@ function scoreTrace(ink, guide, width, pen) {
   return { score, stars: score >= 80 ? 3 : score >= 60 ? 2 : 1 };
 }
 
-// The letter's path as a dashed line (with a light edge so it shows on any
-// colour). After the letter is done it is drawn over the child's lines, so
-// they can see how close they came.
+// The letter's path as a dashed line (with a light edge so it shows on any colour).
 function drawPath(ctx, guide, S, theme, taps = true) {
   ctx.save();
   ctx.lineCap = 'round';
@@ -342,7 +340,6 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     if (s.guide && !s.finished) drawGuide(ctx, s.guide, S, theme, crayonRef.current, s.seq.at(-1));
     if (s.demo) drawDemo(ctx, s, theme);
     ctx.drawImage(s.layer, 0, 0, S, S);
-    if (s.guide && s.finished) drawPath(ctx, s.guide, S, theme);
     // Start markers stay visible on top of the crayon until the letter is done.
     if (s.guide && !s.finished) drawStarts(ctx, s.guide, S, s.startIdx, s.hit);
   }, [char, theme, outlineScale]);

@@ -8,7 +8,7 @@ import { letterGuide, trackWidths } from '../lib/letterGuide';
 
 const COMPLETE_AT = 0.8; // fraction of the letter that must be coloured
 const TRACK_EXTRA = 0.02; // every letter is drawn a little bolder (fraction of font size)
-// Pen colours: black first (the default), the multi-colour pen last.
+// Pen colours: the multi-colour pen (the default) is last.
 const CRAYONS = [
   { id: '#222222', label: 'Black' },
   { id: '#ff5b5b', label: 'Red' },
@@ -209,7 +209,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
   const [ready, setReady] = useState(false);
   const [coverage, setCoverage] = useState(0);
   const [done, setDone] = useState(false);
-  const [crayon, setCrayon] = useState('#222222');
+  const [crayon, setCrayon] = useState('rainbow');
   const [demoOn, setDemoOn] = useState(false);
   const rafRef = useRef(0);
   const crayonRef = useRef(crayon);

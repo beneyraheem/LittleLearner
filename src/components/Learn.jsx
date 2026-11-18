@@ -108,7 +108,6 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
             startNear={letter.startNear}
             guidePaths={letter.guide}
             dotCount={letter.dots || 0}
-            centreGuide={!letter.guideAsDrawn}
             penScale={penScale}
             theme={a.theme}
             reference={referenceChars}

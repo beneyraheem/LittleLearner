@@ -189,7 +189,7 @@ function drawDemo(ctx, s, theme) {
   }
 }
 
-export default function TraceCanvas({ char, font, theme, onComplete, reference = [char], thicken = 0, outlineScale = 1, rtl = false, weight = 700, startNear = null, guidePaths = null, dotCount = 0, penScale = 1, centreGuide = true }) {
+export default function TraceCanvas({ char, font, theme, onComplete, reference = [char], thicken = 0, outlineScale = 1, rtl = false, weight = 700, startNear = null, guidePaths = null, dotCount = 0, penScale = 1 }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const st = useRef({}); // mutable drawing state, not needed for React renders
@@ -322,7 +322,6 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           rtl,
           startNear: startNear && { x: startNear[0] * S, y: startNear[1] * S },
           dots: dotCount,
-          centre: centreGuide,
           // hand-drawn paths are given as fractions of the letter's ink box
           manual:
             guidePaths &&
@@ -386,7 +385,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     return () => {
       cancelled = true;
     };
-  }, [char, font, size, thicken, rtl, weight, startNear?.join(), JSON.stringify(guidePaths), dotCount, penScale, centreGuide, render]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [char, font, size, thicken, rtl, weight, startNear?.join(), JSON.stringify(guidePaths), dotCount, penScale, render]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const measureCoverage = useCallback(() => {
     const s = st.current;

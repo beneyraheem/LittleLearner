@@ -339,8 +339,9 @@ const dhivehi = [
   ['ޔ', 'Yaa', 'y'], ['ޕ', 'Paviyani', 'p'], ['ޖ', 'Javiyani', 'j'], ['ޗ', 'Chaviyani', 'ch'],
 ].map(([char, name, sound]) => {
   const id = name.toLowerCase();
-  // Raa's path reaches into its bumps on purpose, so keep it exactly as drawn
-  return { id, char, name, sound, guide: THAANA_GUIDES[id], guideAsDrawn: id === 'raa' };
+  // Raa reaches into its bumps and Baa loops round its holes on purpose, so keep
+  // these paths exactly as drawn (not pulled to the middle of the stroke)
+  return { id, char, name, sound, guide: THAANA_GUIDES[id], guideAsDrawn: id === 'raa' || id === 'baa' };
 });
 
 // Number of dots on each Arabic letter (ت two above, ث three above, …).

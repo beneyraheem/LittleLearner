@@ -53,6 +53,77 @@ function distToSegment(p, a, b) {
   return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
 }
 
+const distToLine = (p, pts) => {
+  let best = Infinity;
+  for (let i = 1; i < pts.length; i++) best = Math.min(best, distToSegment(p, pts[i - 1], pts[i]));
+  return pts.length === 1 ? Math.hypot(p.x - pts[0].x, p.y - pts[0].y) : best;
+};
+
+// Points every few pixels along a drawn line.
+function along(pts, step) {
+  const out = pts.length ? [pts[0]] : [];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], n = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / step);
+    for (let k = 1; k <= n; k++) out.push({ x: a.x + ((b.x - a.x) * k) / n, y: a.y + ((b.y - a.y) * k) / n });
+  }
+  return out;
+}
+
+// How closely the child's lines followed the letter's path, 0–100, and 1–3 stars.
+// Two parts: how much of what they drew sits on the path (wobbles and wandering
+// count against it), and how much of the path their lines went along.
+function scoreTrace(ink, guide, width, pen) {
+  const lines = guide.strokes.filter((g) => !g.tap).map((g) => g.points);
+  if (!lines.length) return { score: 100, stars: 3 };
+  // right on the line: within about a pen's width; nothing for wandering near the edge of the letter
+  const close = Math.max(pen * 1.1, width * 0.1), far = Math.max(close * 2, Math.min(width * 0.42, pen * 2.6));
+  const drawn = ink.flatMap((l) => along(l, 3));
+  let onPath = 0;
+  for (const p of drawn) {
+    const d = Math.min(...lines.map((l) => distToLine(p, l)));
+    onPath += d <= close ? 1 : d >= far ? 0 : (far - d) / (far - close);
+  }
+  const accuracy = drawn.length ? onPath / drawn.length : 0;
+  const path = lines.flatMap((l) => along(l, 6));
+  const inkLines = ink.filter((l) => l.length);
+  let covered = 0;
+  for (const p of path) if (inkLines.some((l) => distToLine(p, l) <= Math.max(pen * 2, width * 0.25))) covered++;
+  const coverage = path.length ? covered / path.length : 1;
+  const score = Math.round(100 * (0.6 * accuracy + 0.4 * coverage));
+  if (window.__debugGuide) window.__score = { accuracy, coverage, width, pen, close, far };
+  return { score, stars: score >= 80 ? 3 : score >= 60 ? 2 : 1 };
+}
+
+// After the letter is done: the letter's own path as a dashed line over the
+// child's drawing, so they can see how close they came.
+function drawCompare(ctx, guide, S, theme) {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (const g of guide.strokes) {
+    const pts = g.points;
+    if (g.tap) {
+      ctx.beginPath();
+      ctx.arc(pts[0].x, pts[0].y, Math.max(5, S * 0.018), 0, Math.PI * 2);
+      ctx.lineWidth = Math.max(2, S * 0.007);
+      ctx.strokeStyle = theme.deep;
+      ctx.stroke();
+      continue;
+    }
+    ctx.beginPath();
+    pts.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)));
+    ctx.setLineDash([]);
+    ctx.lineWidth = Math.max(3, S * 0.011);
+    ctx.strokeStyle = 'rgba(255,255,255,.85)';
+    ctx.stroke();
+    ctx.setLineDash([Math.max(4, S * 0.016), Math.max(4, S * 0.014)]);
+    ctx.lineWidth = Math.max(2, S * 0.006);
+    ctx.strokeStyle = theme.deep;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 // Draw the letter, optionally thickened by stroking its outline – used for
 // fonts with thin strokes so there is room for little fingers to colour.
 function drawShape(ctx, char, glyph, thicken, color) {
@@ -268,9 +339,10 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     const outline = Math.max(3, S * 0.014 * outlineScale);
     drawShape(ctx, char, glyph, glyph.thick + outline * 2, theme.deep);
     drawShape(ctx, char, glyph, glyph.thick, theme.soft);
-    if (s.guide) drawGuide(ctx, s.guide, S, theme, s.startIdx, s.next, crayonRef.current);
+    if (s.guide && !s.finished) drawGuide(ctx, s.guide, S, theme, s.startIdx, s.next, crayonRef.current);
     if (s.demo) drawDemo(ctx, s, theme);
     ctx.drawImage(s.layer, 0, 0, S, S);
+    if (s.guide && s.finished) drawCompare(ctx, s.guide, S, theme);
     // Start markers stay visible on top of the crayon until the letter is done.
     if (s.guide && !s.finished) drawStarts(ctx, s.guide, S, s.startIdx, s.next);
   }, [char, theme, outlineScale]);
@@ -407,6 +479,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
           last: null,
           lastCheck: 0,
           finished: false,
+          ink: [], // the child's lines, to compare with the path at the end
         };
         render();
         setReady(true);
@@ -435,31 +508,13 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     setDemoOn(false);
     const pc = s.paint.getContext('2d');
     if (s.guide) {
-      // Finish neatly: draw the letter's strokes as a clean line in the pen colour.
-      pc.lineCap = 'round';
-      pc.lineJoin = 'round';
-      pc.lineWidth = s.pen * 1.2;
-      for (const g of s.guide.strokes) {
-        const pts = g.points;
-        if (g.tap) {
-          pc.fillStyle = colorFor();
-          pc.beginPath();
-          pc.arc(pts[0].x, pts[0].y, s.pen * 1.3, 0, Math.PI * 2);
-          pc.fill();
-          continue;
-        }
-        for (let i = 1; i < pts.length; i++) {
-          pc.strokeStyle = colorFor();
-          pc.beginPath();
-          pc.moveTo(pts[i - 1].x, pts[i - 1].y);
-          pc.lineTo(pts[i].x, pts[i].y);
-          pc.stroke();
-        }
-      }
+      // Keep the child's own lines and score them against the letter's path.
+      const result = scoreTrace(s.ink, s.guide, s.brush, s.pen);
+      s.result = result;
       render();
       setCoverage(1);
       setDone(true);
-      onComplete?.();
+      onComplete?.(result);
       return;
     }
     // No guide: magic fill – colour any gaps behind the child's strokes.
@@ -575,6 +630,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     const p = point(e);
     s.last = p;
     s.lost = false;
+    s.ink.push([p]);
     const pc = s.paint.getContext('2d');
     pc.fillStyle = colorFor();
     pc.beginPath();
@@ -593,6 +649,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     pc.lineWidth = s.pen;
     for (const ev of events) {
       const p = point(ev);
+      s.ink.at(-1)?.push(p);
       pc.strokeStyle = colorFor();
       pc.beginPath();
       pc.moveTo(s.last.x, s.last.y);
@@ -620,6 +677,7 @@ export default function TraceCanvas({ char, font, theme, onComplete, reference =
     if (!s.paint || s.finished) return;
     s.paint.getContext('2d').clearRect(0, 0, s.S, s.S);
     s.next = 0;
+    s.ink = [];
     render();
     setCoverage(0);
     setProgress(0);

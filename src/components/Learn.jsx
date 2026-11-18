@@ -12,6 +12,7 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
   const [index, setIndex] = useState(startIndex);
   const [stage, setStage] = useState('intro'); // intro | trace | done
   const [attempt, setAttempt] = useState(0);
+  const [result, setResult] = useState(null); // { score, stars } from the last trace
   const letter = a.letters[index];
   const isLast = index === a.letters.length - 1;
   const doneSet = new Set(progress[langId].done);
@@ -25,7 +26,8 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
     }
   }, [a, letter, stage]);
 
-  const handleTraced = useCallback(() => {
+  const handleTraced = useCallback((res) => {
+    setResult(res || null);
     onComplete(langId, letter.id);
     sfx.success();
     setTimeout(cheer, 600); // after the chime
@@ -122,6 +124,19 @@ export default function Learn({ langId, startIndex, progress, onComplete, onExit
                   <span className="glyph">{letter.char}</span>
                 </b>
               </p>
+              {result && (
+                <div className="trace-marks" aria-label={`${result.stars} of 3 stars: ${result.score}% on the path`}>
+                  <span className="trace-stars" aria-hidden="true">
+                    {[1, 2, 3].map((n) => (
+                      <span key={n} className={n <= result.stars ? 'on' : ''}>★</span>
+                    ))}
+                  </span>
+                  <span className="trace-score">
+                    {result.stars === 3 ? 'Right on the path!' : result.stars === 2 ? 'Very close to the path!' : 'Good try! Follow the dashes.'}{' '}
+                    <b>{result.score}%</b>
+                  </span>
+                </div>
+              )}
               <div className="done-actions">
                 <button
                   className="btn btn-soft"

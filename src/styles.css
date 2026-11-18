@@ -376,6 +376,15 @@ h1, h2, p { margin: 0; }
 /* Inline "letter done" row under the traced letter */
 .done-inline { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 6px; text-align: center; }
 .done-inline-title { font-size: 1.35rem; font-weight: 700; color: var(--deep); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.trace-marks { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.trace-stars { display: flex; gap: 6px; font-size: 2.1rem; line-height: 1; }
+.trace-stars span { color: #e6dfd6; }
+.trace-stars span.on { color: #ffc531; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.08); animation: star-pop 0.4s both; }
+.trace-stars span.on:nth-child(2) { animation-delay: 0.15s; }
+.trace-stars span.on:nth-child(3) { animation-delay: 0.3s; }
+.trace-score { font-weight: 600; color: var(--deep); }
+@keyframes star-pop { from { transform: scale(0.3); opacity: 0; } 70% { transform: scale(1.25); } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .trace-stars span.on { animation: none; } }
 
 /* Parent menu: tracing line thickness */
 .pen-setting { display: flex; flex-direction: column; gap: 8px; }

@@ -117,6 +117,16 @@ function drawGuide(ctx, guide, S, theme, startIdx = null, next = 0) {
   ctx.globalAlpha = 1;
 }
 
+// Points every 2px along a polyline (where a start marker may be placed).
+function alongLine(pts) {
+  const out = [];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 2));
+    for (let k = 0; k < n; k++) out.push({ x: a.x + ((b.x - a.x) * k) / n, y: a.y + ((b.y - a.y) * k) / n });
+  }
+  return out;
+}
+
 // Numbered green circle where each stroke starts (Arabic dots: a ring to tap).
 function drawStarts(ctx, guide, S, startIdx = null, next = 0) {
   const R = Math.max(10, S * 0.034);
@@ -127,7 +137,9 @@ function drawStarts(ctx, guide, S, startIdx = null, next = 0) {
   const placed = [];
   guide.strokes.forEach((st, i) => {
     // if another stroke starts at the same spot (A), nudge this marker along its stroke
-    const p = st.dots.slice(0, Math.ceil(st.dots.length / 2)).find((d) => placed.every((q) => Math.hypot(d.x - q.x, d.y - q.y) > R * 2.3)) || st.dots[0];
+    // look along the whole line (not just the dots) so short strokes can space their numbers out
+    const free = (d) => placed.every((q) => Math.hypot(d.x - q.x, d.y - q.y) > R * 2.2);
+    const p = free(st.dots[0]) ? st.dots[0] : alongLine(st.points).find(free) || st.dots[0];
     placed.push(p);
     if (startIdx && startIdx[i] < next) return; // stroke already started
     ctx.beginPath();

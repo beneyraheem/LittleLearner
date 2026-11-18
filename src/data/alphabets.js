@@ -309,6 +309,17 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Zaviyani (as drawn by the user): six joined strokes – 1. from the top right to the centre;
+  // 2. out to the lower right end of the crossbar; 3. back to the centre; 4. out to the upper
+  // left end; 5. back to the centre; 6. down the big curve and along the bottom.
+  zaviyani: [
+    [[0.895, 0.101], [0.8, 0.142], [0.683, 0.214], [0.6, 0.267], [0.512, 0.325]],
+    [[0.512, 0.325], [0.633, 0.374], [0.717, 0.418], [0.778, 0.441]],
+    [[0.778, 0.441], [0.717, 0.418], [0.633, 0.374], [0.512, 0.325]],
+    [[0.512, 0.325], [0.433, 0.285], [0.383, 0.258], [0.322, 0.228]],
+    [[0.322, 0.228], [0.383, 0.258], [0.433, 0.285], [0.512, 0.325]],
+    [[0.512, 0.325], [0.417, 0.383], [0.317, 0.454], [0.225, 0.534], [0.158, 0.614], [0.122, 0.676], [0.12, 0.73], [0.15, 0.783], [0.217, 0.819], [0.333, 0.845], [0.467, 0.865], [0.6, 0.877], [0.695, 0.884]],
+  ],
   // Seenu (as drawn by the user): two joined strokes – 1. from the top right along the whole
   // body to the left end; 2. from there down into the tail.
   seenu: [

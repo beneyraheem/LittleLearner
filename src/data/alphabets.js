@@ -309,6 +309,12 @@ const english = [
 // left); a single point is a dot to tap.
 const FAAFU = [[0.85, 0.08], [0.72, 0.15], [0.62, 0.22], [0.75, 0.27], [0.86, 0.32], [0.72, 0.4], [0.6, 0.46], [0.7, 0.5], [0.78, 0.55], [0.6, 0.66], [0.4, 0.77], [0.25, 0.84], [0.1, 0.87]];
 const THAANA_GUIDES = {
+  // Noonu (as drawn by the user): 1. from the right end, round the right hump, up to the
+  // point and left along the top to the middle; 2. from just above the middle, down the tail.
+  noonu: [
+    [[0.928, 0.14], [0.892, 0.228], [0.858, 0.309], [0.817, 0.379], [0.767, 0.404], [0.708, 0.414], [0.68, 0.368], [0.663, 0.281], [0.657, 0.168], [0.657, 0.168], [0.633, 0.221], [0.592, 0.256], [0.533, 0.277], [0.492, 0.274], [0.453, 0.249]],
+    [[0.428, 0.211], [0.453, 0.249], [0.417, 0.368], [0.367, 0.509], [0.3, 0.614], [0.225, 0.702], [0.15, 0.779], [0.095, 0.811]],
+  ],
   // Shaviyani (as drawn by the user): two joined strokes – 1. from the right end, curving
   // down and left to the point in the middle; 2. from that point curving down to the bottom left.
   shaviyani: [
